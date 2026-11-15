@@ -12,8 +12,9 @@ Kubernetes (serving), and never from model memory.
 | Task 4: Kubernetes operations + FastAPI inference service | ✅ implemented + tested |
 | Task 5: Multi-tool agent (Gemini) + FastAPI interface | ✅ implemented + tested |
 
-See [architecture.md](architecture.md) for the design, and [docs/conversations/](docs/conversations/) for
-the five assessed scenarios run end-to-end with real tool evidence.
+**Technical report:** [REPORT.pdf](REPORT.pdf). See also [architecture.md](architecture.md) for the design,
+[docs/conversations/](docs/conversations/) for the five assessed scenarios run end-to-end with real tool
+evidence, and [docs/evidence/](docs/evidence/) for exported tool outputs from DVC, MLflow, Airflow and Kubernetes.
 
 ## Quick start: one command
 
@@ -126,7 +127,8 @@ agent/
 dags/training_pipeline.py     Airflow training DAG
 Dockerfile                    inference service image (FastAPI app in serving/, built from the repo root)
 serving/                      FastAPI inference service (app.py, export_model.py, requirements.txt)
-screenshots/                  report screenshots (checklist in screenshots/README.md)
+screenshots/                  screenshots of MLflow, Airflow and the agent (used in REPORT.pdf)
+REPORT.pdf                    technical report (architecture, tools, evidence, conversations, failures, limitations)
 start.py                      one-command setup + launcher
 kubernetes/                   namespace, configmap, deployment, service, agent-rbac, kind-cluster
 docker/airflow/               Airflow 3.4 image (+ scikit-learn, mlflow-skinny, skops)
