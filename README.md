@@ -15,16 +15,51 @@ Kubernetes (serving), and never from model memory.
 See [architecture.md](architecture.md) for the design, and [docs/conversations/](docs/conversations/) for
 the five assessed scenarios run end-to-end with real tool evidence.
 
-## Quick start: talk to the agent
+## Quick start: one command
+
+**Prerequisites:** Python 3.11+, git, Docker Desktop (running), and for the Kubernetes part
+[kubectl](https://kubernetes.io/docs/tasks/tools/) + [kind](https://kind.sigs.k8s.io/) (Windows: `winget install Kubernetes.kind`).
+You also need a Gemini API key ([get one](https://aistudio.google.com/apikey)).
 
 ```bash
-# prerequisites: venv installed, .env filled in (GEMINI_API_KEY, AIRFLOW_ADMIN_PASSWORD), services running:
+git clone <repo-url> && cd <repo>
+python start.py
+```
+
+On the first run `start.py` does everything that's missing, then opens the agent chat:
+
+| Step | What happens |
+|---|---|
+| 1 | checks prerequisites (and that Docker is running) |
+| 2 | creates `.venv` and installs dependencies |
+| 3 | creates `.env` from `.env.example`, generates the Airflow password, **asks for your Gemini key** (hidden input, saved only to `.env`) |
+| 4 | `dvc pull`: restores the versioned datasets from the committed demo remote, hash-verified |
+| 5 | starts MLflow + Airflow (`docker compose up`) and waits until they're healthy |
+| 6 | seeds the MLflow experiment history and registers the `champion` model |
+| 7 | creates the kind cluster, exports the champion from MLflow, builds and deploys the prediction API |
+| 8 | creates the agent's restricted Kubernetes credentials (`.secrets/`, valid 24h) |
+
+The first run takes ~10 minutes (image builds). Later runs take seconds: every step is skipped when already done.
+
+```bash
+python start.py            # chat in the terminal (asks "yes?" before any state change)
+python start.py --api      # HTTP API on http://localhost:8100 (interactive docs at /docs)
+python start.py --status   # health of every component
+python start.py --no-k8s   # without Kubernetes (k8s tools then report "unavailable")
+```
+
+> **Windows:** run `start.py` and the `.py` scripts from PowerShell. The few `scripts/*.sh` helpers need
+> **Git Bash**: in PowerShell, `bash` starts the WSL launcher instead. Use
+> `& "C:\Program Files\Git\bin\bash.exe" scripts/<name>.sh`, or open a Git Bash terminal.
+
+### Manual start (what `start.py` automates)
+
+```bash
 docker compose up -d                                  # MLflow + Airflow
 kind create cluster --config kubernetes/kind-cluster.yaml && bash scripts/deploy_serving.sh
 bash scripts/k8s_agent_kubeconfig.sh                  # restricted agent credentials
-
-python -m agent.main                                  # interactive chat (asks before any state change)
-uvicorn api.main:app --port 8100                      # HTTP API, docs at http://localhost:8100/docs
+python -m agent.main                                  # interactive chat
+uvicorn api.main:app --port 8100                      # HTTP API
 ```
 
 ```bash
@@ -78,7 +113,7 @@ dvc status          # -> "Data and pipelines are up to date."
 
 ### DVC remote
 
-The demo uses a local remote at `.dvcstore/` (git-ignored). In production you would point it at
+The demo uses a local remote at `.dvcstore/`, **committed to git** (~1.4 MB) so a fresh clone can `dvc pull`. In production you would point it at
 object storage, e.g. `dvc remote add -d storage s3://bucket/path`, with credentials supplied
 through environment variables or `dvc remote modify --local` (never committed).
 
@@ -146,7 +181,7 @@ python -m agent.cli restore_dataset_workspace '{}' --confirm
 
 ## Tests
 
-Before committing/pushing: `bash scripts/check_secrets.sh` (scans staged changes and tracked files for the values in `.env`/`.secrets/` and for credential patterns; never prints them).
+Before committing/pushing: `python scripts/check_secrets.py` (scans staged changes and tracked files for the values in `.env`/`.secrets/` and for credential patterns; never prints them).
 
 ```bash
 pytest -q        # 71 tests; DVC uses a temp git+DVC repo; MLflow, Airflow and Kubernetes are mocked
