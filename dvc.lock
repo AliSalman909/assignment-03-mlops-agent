@@ -10,13 +10,13 @@ stages:
       size: 313432
     - path: training/preprocess.py
       hash: md5
-      md5: c3baae2186a3bcae24395ace263590b4
-      size: 1887
+      md5: fd12234b0a40df4d35dcf934ba3963cc
+      size: 1901
     outs:
     - path: data/processed/stats.json
       hash: md5
-      md5: e95ba2b244f602d0fe3afb854236a50a
-      size: 412
+      md5: 4d931117d36999089d573de5ea52d1f4
+      size: 391
     - path: data/processed/test.csv
       hash: md5
       md5: 0e4c363e92c08504830590d3fd748260

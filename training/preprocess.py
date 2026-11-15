@@ -50,7 +50,7 @@ def main() -> None:
         "positive_rate": round(float(df[TARGET].mean()), 4),
         "columns": list(raw.columns),
     }
-    (out / "stats.json").write_text(json.dumps(stats, indent=2) + "\n")
+    (out / "stats.json").write_text(json.dumps(stats, indent=2) + "\n", newline="\n")
     print(json.dumps(stats))
 
 

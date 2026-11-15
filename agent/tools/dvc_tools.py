@@ -57,6 +57,15 @@ from agent.tools.base import (
 
 MODULE = "dvc"
 
+
+class CommandFailedError(ToolError):
+    """An approved command ran and exited non-zero (e.g. unknown revision, missing file).
+
+    Kept distinct from timeouts/unavailability so callers that tolerate "not found" never
+    mask an infrastructure failure as a negative answer.
+    """
+
+
 # ---------------------------------------------------------------------------
 # Input validation helpers
 # ---------------------------------------------------------------------------
@@ -160,7 +169,7 @@ class SafeCommandRunner:
         if proc.returncode != 0:
             msg = (proc.stderr or proc.stdout).strip().splitlines()
             tail = " | ".join(msg[-3:]) if msg else f"exit code {proc.returncode}"
-            raise ToolError(redact(f"'{binary} {' '.join(args[:2])}' failed: {tail}"))
+            raise CommandFailedError(redact(f"'{binary} {' '.join(args[:2])}' failed: {tail}"))
         return proc.stdout
 
 
@@ -256,7 +265,7 @@ class DVCTools:
     def _resolve_commit(self, rev: str) -> str:
         try:
             return self._git("rev-parse", "--verify", "--quiet", f"{rev}^{{commit}}").strip()
-        except ToolError as exc:
+        except CommandFailedError as exc:
             raise ToolInvalidRequestError(f"git revision '{rev}' does not exist in this repository") from exc
 
     def _commit_info(self, sha: str) -> dict[str, str]:
@@ -267,7 +276,7 @@ class DVCTools:
     def _show(self, sha: str, repo_path: str) -> str | None:
         try:
             return self._git("show", f"{sha}:{repo_path}")
-        except ToolError:
+        except CommandFailedError:
             return None
 
     def _tracking_record(self, path: str, sha: str) -> dict[str, Any]:
@@ -315,10 +324,10 @@ class DVCTools:
             try:
                 if self._tracking_record(path, commit)["md5"] == md5:
                     matching.append(tag)
-            except ToolError:
+            except ToolInvalidRequestError:
                 continue
         prefix = self.settings.dataset_tag_prefix
-        label = matching[0][len(prefix):] if matching else None
+        label = matching[0][len(prefix) :] if matching else None
         return {
             "version": label,
             "version_tag": matching[0] if matching else None,
@@ -327,19 +336,27 @@ class DVCTools:
         }
 
     def _remote_info(self) -> dict[str, Any]:
+        """Read remote configuration through DVC's config API (structured, read-only).
+
+        `dvc remote list` output is formatted for humans (wrapping, "(default)" markers) and breaks
+        on paths containing spaces, so the config object is used instead. Local relative URLs are
+        resolved against the .dvc directory, exactly as DVC itself does.
+        """
         try:
-            listing = self._dvc("remote", "list").strip().splitlines()
-        except ToolError:
-            listing = []
+            from dvc.config import Config
+        except ImportError as exc:
+            raise ToolUnavailableError("DVC is not installed in the agent environment") from exc
+        try:
+            cfg = Config(dvc_dir=str(self.root / ".dvc"))
+        except Exception as exc:  # noqa: BLE001 - malformed config is an operational error, not a crash
+            raise ToolError(f"could not read DVC config: {type(exc).__name__}: {exc}") from exc
         remotes = {}
-        for line in listing:
-            parts = line.split()
-            if len(parts) >= 2:
-                remotes[parts[0]] = redact(parts[1])
-        try:
-            default = self._dvc("remote", "default").strip() or None
-        except ToolError:
-            default = None
+        for name, conf in (cfg.get("remote") or {}).items():
+            url = str(conf.get("url", ""))
+            if url and "://" not in url and not Path(url).is_absolute():
+                url = str((self.root / ".dvc" / url).resolve())
+            remotes[name] = redact(url)
+        default = (cfg.get("core") or {}).get("remote")
         return {"default_remote": default, "remotes": remotes}
 
     def _cache_path(self, md5: str) -> Path:
@@ -368,7 +385,11 @@ class DVCTools:
 
     @staticmethod
     def _frame_stats(df) -> dict[str, Any]:
-        stats: dict[str, Any] = {"rows": int(len(df)), "columns": list(df.columns), "duplicate_rows": int(df.duplicated().sum())}
+        stats: dict[str, Any] = {
+            "rows": int(len(df)),
+            "columns": list(df.columns),
+            "duplicate_rows": int(df.duplicated().sum()),
+        }
         if "churned" in df.columns:
             stats["positive_rate"] = round(float(df["churned"].mean()), 4)
         return stats
@@ -441,7 +462,7 @@ class DVCTools:
             full, short, date, subject = line.split("\x1f", 3)
             try:
                 rec = self._tracking_record(p.path, full)
-            except ToolError:
+            except ToolInvalidRequestError:
                 continue
             if rec["md5"] in seen:
                 continue
@@ -467,10 +488,20 @@ class DVCTools:
         rec_a, rec_b = self._tracking_record(p.path, sha_a), self._tracking_record(p.path, sha_b)
         data: dict[str, Any] = {
             "path": p.path,
-            "a": {"revision": p.rev_a, "commit": sha_a, "md5": rec_a["md5"], "size_bytes": rec_a["size_bytes"],
-                  **self._version_label(p.path, rec_a["md5"], sha_a)},
-            "b": {"revision": p.rev_b, "commit": sha_b, "md5": rec_b["md5"], "size_bytes": rec_b["size_bytes"],
-                  **self._version_label(p.path, rec_b["md5"], sha_b)},
+            "a": {
+                "revision": p.rev_a,
+                "commit": sha_a,
+                "md5": rec_a["md5"],
+                "size_bytes": rec_a["size_bytes"],
+                **self._version_label(p.path, rec_a["md5"], sha_a),
+            },
+            "b": {
+                "revision": p.rev_b,
+                "commit": sha_b,
+                "md5": rec_b["md5"],
+                "size_bytes": rec_b["size_bytes"],
+                **self._version_label(p.path, rec_b["md5"], sha_b),
+            },
             "content_identical": rec_a["md5"] == rec_b["md5"],
         }
         if rec_a["size_bytes"] is not None and rec_b["size_bytes"] is not None:
@@ -487,7 +518,10 @@ class DVCTools:
 
         if p.include_content_stats and not data["content_identical"]:
             try:
-                sa, sb = self._frame_stats(self._load_frame(p.path, sha_a)), self._frame_stats(self._load_frame(p.path, sha_b))
+                sa, sb = (
+                    self._frame_stats(self._load_frame(p.path, sha_a)),
+                    self._frame_stats(self._load_frame(p.path, sha_b)),
+                )
                 data["content"] = {
                     "a": sa,
                     "b": sb,
@@ -548,15 +582,28 @@ class DVCTools:
         remote = self._remote_info()
         remote_obj = self._remote_object_path(record["md5"]) if record["md5"] else None
         short = sha[:8]
+        checkout_target = tracker if tracker.endswith(".dvc") else ""
         steps = [
-            {"step": 1, "purpose": "restore the DVC pointer recorded at that commit",
-             "command": f"git checkout {short} -- {tracker}"},
-            {"step": 2, "purpose": "fetch the exact bytes from the remote (or local cache) and place them in the workspace",
-             "command": f"dvc pull {tracker}" if tracker.endswith(".dvc") else f"dvc pull {p.path}"},
-            {"step": 3, "purpose": "verify the workspace matches the recorded hash (expects no changes)",
-             "command": f"dvc status {tracker}" if tracker.endswith(".dvc") else "dvc status"},
-            {"step": 4, "purpose": "return to the current version afterwards",
-             "command": f"git checkout HEAD -- {tracker} && dvc checkout {tracker if tracker.endswith('.dvc') else ''}".strip()},
+            {
+                "step": 1,
+                "purpose": "restore the DVC pointer recorded at that commit",
+                "command": f"git checkout {short} -- {tracker}",
+            },
+            {
+                "step": 2,
+                "purpose": "fetch the exact bytes from the remote (or local cache) and place them in the workspace",
+                "command": f"dvc pull {tracker}" if tracker.endswith(".dvc") else f"dvc pull {p.path}",
+            },
+            {
+                "step": 3,
+                "purpose": "verify the workspace matches the recorded hash (expects no changes)",
+                "command": f"dvc status {tracker}" if tracker.endswith(".dvc") else "dvc status",
+            },
+            {
+                "step": 4,
+                "purpose": "return to the current version afterwards",
+                "command": f"git checkout HEAD -- {tracker} && dvc checkout {checkout_target}".strip(),
+            },
         ]
         alternative = {
             "purpose": "non-destructive copy without touching the workspace",
@@ -573,7 +620,7 @@ class DVCTools:
                 "expected_size_bytes": record["size_bytes"],
                 "steps": steps,
                 "non_destructive_alternative": alternative,
-                "downstream": "run `dvc repro` afterwards to rebuild pipeline outputs (data/processed) for this version",
+                "downstream": "run `dvc repro` afterwards to rebuild pipeline outputs (data/processed)",
                 "availability": {
                     "in_local_cache": self._cache_path(record["md5"]).exists() if record["md5"] else False,
                     "in_default_remote": remote_obj.exists() if remote_obj else "unknown (cloud remote)",
@@ -599,8 +646,11 @@ class DVCTools:
 
         # `dvc get` clones the repo at that commit and fetches the object from the configured remote,
         # which proves the version is reproducible from shared storage - not just from this workspace.
-        self.runner.run("dvc", ["get", str(self.root), p.path, "--rev", sha, "-o", str(out_file)], timeout_s=max(
-            self.settings.dvc_timeout_s, 120))
+        self.runner.run(
+            "dvc",
+            ["get", str(self.root), p.path, "--rev", sha, "-o", str(out_file)],
+            timeout_s=max(self.settings.dvc_timeout_s, 120),
+        )
         actual = self._md5_file(out_file)
         verified = actual == record["md5"]
         if not verified:
@@ -626,8 +676,12 @@ class DVCTools:
         self._dvc("checkout", "--force", target, allow_mutating=True)
         actual = self._md5_file(self.root / p.path) if (self.root / p.path).is_file() else None
         return ToolOutput(
-            data={"path": p.path, "restored_to_md5": record["md5"], "workspace_md5": actual,
-                  "verified": actual == record["md5"]},
+            data={
+                "path": p.path,
+                "restored_to_md5": record["md5"],
+                "workspace_md5": actual,
+                "verified": actual == record["md5"],
+            },
             evidence_source=[f"dvc checkout {target}", "md5 verification"],
         )
 
@@ -638,31 +692,89 @@ class DVCTools:
 def register_dvc_tools(registry: ToolRegistry, tools: DVCTools | None = None) -> DVCTools:
     t = tools or DVCTools()
     specs = [
-        ("dvc_list_datasets", ListDatasetsInput, t.list_datasets, False, False,
-         "List every dataset tracked by DVC at a git revision (raw inputs from .dvc files and pipeline "
-         "outputs from dvc.lock) with their md5 and size."),
-        ("dvc_get_dataset_version", GetDatasetVersionInput, t.get_dataset_version, False, False,
-         "Get the dataset version label, md5, size, and git commit for a dataset at a revision. Pass the git "
-         "commit recorded on an MLflow run as `rev` to find which dataset version trained it; pass the run's "
-         "recorded md5 as `expected_md5` to verify provenance."),
-        ("dvc_dataset_history", DatasetHistoryInput, t.dataset_history, False, False,
-         "List all historical versions of a dataset (each distinct md5 with its commit, date, and version tags)."),
-        ("dvc_compare_versions", CompareVersionsInput, t.compare_versions, False, False,
-         "Compare a dataset between two revisions: hash/size change, dvc diff, and row/column/label-balance changes."),
-        ("dvc_check_changes", CheckChangesInput, t.check_changes, False, False,
-         "Detect whether tracked data in the workspace differs from the committed DVC version, whether the "
-         "pipeline is stale, and whether data is pushed to the DVC remote."),
-        ("dvc_reproduce_instructions", ReproduceInput, t.reproduce_instructions, False, False,
-         "Explain the exact commands needed to reproduce a previous dataset version, with expected md5 and "
-         "whether the bytes are available in the cache/remote. Does not execute anything."),
-        ("dvc_materialize_version", MaterializeInput, t.materialize_version, False, False,
-         "Reproduce a past dataset version into the sandbox directory artifacts/reproduced/<commit>/ using "
-         "`dvc get` from the remote, and verify its md5 against the record. Does not modify the workspace."),
-        ("dvc_restore_workspace", RestoreWorkspaceInput, t.restore_workspace, True, True,
-         "STATE-CHANGING: run `dvc checkout` to discard local modifications and restore the committed version "
-         "of a dataset in the workspace. Requires explicit user confirmation."),
+        (
+            "dvc_list_datasets",
+            ListDatasetsInput,
+            t.list_datasets,
+            False,
+            False,
+            "List every dataset tracked by DVC at a git revision (raw inputs from .dvc files and pipeline "
+            "outputs from dvc.lock) with their md5 and size.",
+        ),
+        (
+            "dvc_get_dataset_version",
+            GetDatasetVersionInput,
+            t.get_dataset_version,
+            False,
+            False,
+            "Get the dataset version label, md5, size, and git commit for a dataset at a revision. Pass the git "
+            "commit recorded on an MLflow run as `rev` to find which dataset version trained it; pass the run's "
+            "recorded md5 as `expected_md5` to verify provenance.",
+        ),
+        (
+            "dvc_dataset_history",
+            DatasetHistoryInput,
+            t.dataset_history,
+            False,
+            False,
+            "List all historical versions of a dataset (each distinct md5 with its commit, date, and version tags).",
+        ),
+        (
+            "dvc_compare_versions",
+            CompareVersionsInput,
+            t.compare_versions,
+            False,
+            False,
+            "Compare a dataset between two revisions: hash/size change, dvc diff, and row/column/label-balance "
+            "changes.",
+        ),
+        (
+            "dvc_check_changes",
+            CheckChangesInput,
+            t.check_changes,
+            False,
+            False,
+            "Detect whether tracked data in the workspace differs from the committed DVC version, whether the "
+            "pipeline is stale, and whether data is pushed to the DVC remote.",
+        ),
+        (
+            "dvc_reproduce_instructions",
+            ReproduceInput,
+            t.reproduce_instructions,
+            False,
+            False,
+            "Explain the exact commands needed to reproduce a previous dataset version, with expected md5 and "
+            "whether the bytes are available in the cache/remote. Does not execute anything.",
+        ),
+        (
+            "dvc_materialize_version",
+            MaterializeInput,
+            t.materialize_version,
+            False,
+            False,
+            "Reproduce a past dataset version into the sandbox directory artifacts/reproduced/<commit>/ using "
+            "`dvc get` from the remote, and verify its md5 against the record. Does not modify the workspace.",
+        ),
+        (
+            "dvc_restore_workspace",
+            RestoreWorkspaceInput,
+            t.restore_workspace,
+            True,
+            True,
+            "STATE-CHANGING: run `dvc checkout` to discard local modifications and restore the committed version "
+            "of a dataset in the workspace. Requires explicit user confirmation.",
+        ),
     ]
     for name, model, func, mutating, confirm, desc in specs:
-        registry.register(Tool(name=name, module=MODULE, description=desc, input_model=model, func=func,
-                               mutating=mutating, requires_confirmation=confirm))
+        registry.register(
+            Tool(
+                name=name,
+                module=MODULE,
+                description=desc,
+                input_model=model,
+                func=func,
+                mutating=mutating,
+                requires_confirmation=confirm,
+            )
+        )
     return t

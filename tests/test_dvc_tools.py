@@ -10,7 +10,13 @@ import pytest
 from agent.config import Settings
 from agent.schemas import ToolStatus
 from agent.tools.base import ToolRegistry
-from agent.tools.dvc_tools import DVCTools, SafeCommandRunner, normalize_path, register_dvc_tools, validate_rev
+from agent.tools.dvc_tools import (
+    DVCTools,
+    SafeCommandRunner,
+    normalize_path,
+    register_dvc_tools,
+    validate_rev,
+)
 
 
 # ---------------------------------------------------------------- real repo ---
@@ -34,8 +40,8 @@ def test_dataset_version_identified_from_tag_and_md5(dvc_registry):
 
 def test_provenance_md5_verification(dvc_registry):
     registry, _ = dvc_registry
-    v1 = registry.execute("dvc_get_dataset_version", {"rev": "data-v1.0"}).data["md5"]
-    res = registry.execute("dvc_get_dataset_version", {"rev": "data-v2.0", "expected_md5": v1})
+    v1 = registry.execute("dvc_get_dataset_version", {"path": "data/ds.csv", "rev": "data-v1.0"}).data["md5"]
+    res = registry.execute("dvc_get_dataset_version", {"path": "data/ds.csv", "rev": "data-v2.0", "expected_md5": v1})
     assert res.ok and res.data["md5_matches_expected"] is False
 
 
@@ -87,7 +93,7 @@ def test_materialize_previous_version_is_byte_identical(dvc_registry):
 
 def test_reproduce_instructions_contain_exact_commands(dvc_registry):
     registry, _ = dvc_registry
-    res = registry.execute("dvc_reproduce_instructions", {"rev": "data-v1.0"})
+    res = registry.execute("dvc_reproduce_instructions", {"path": "data/ds.csv", "rev": "data-v1.0"})
     assert res.ok, res.error
     commands = " ".join(s["command"] for s in res.data["steps"])
     assert "git checkout" in commands and "dvc pull data/ds.csv.dvc" in commands
@@ -96,7 +102,7 @@ def test_reproduce_instructions_contain_exact_commands(dvc_registry):
 
 def test_unknown_revision_is_reported_not_invented(dvc_registry):
     registry, _ = dvc_registry
-    res = registry.execute("dvc_get_dataset_version", {"rev": "data-v9.9"})
+    res = registry.execute("dvc_get_dataset_version", {"path": "data/ds.csv", "rev": "data-v9.9"})
     assert res.status == ToolStatus.INVALID_REQUEST
     assert res.data is None
 
@@ -124,8 +130,12 @@ def test_invalid_arguments_return_invalid_request():
 
 def test_command_allow_list_blocks_unapproved_commands(tmp_path):
     runner = SafeCommandRunner(tmp_path)
-    for binary, args in [("dvc", ["gc", "-w"]), ("git", ["push", "origin"]), ("git", ["tag", "evil"]),
-                         ("dvc", ["remote", "remove", "storage"])]:
+    for binary, args in [
+        ("dvc", ["gc", "-w"]),
+        ("git", ["push", "origin"]),
+        ("git", ["tag", "evil"]),
+        ("dvc", ["remote", "remove", "storage"]),
+    ]:
         with pytest.raises(Exception, match="not on the approved list"):
             runner.check_allowed(binary, args, allow_mutating=True)
     with pytest.raises(Exception, match="modifies state"):
