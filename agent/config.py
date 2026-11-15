@@ -66,6 +66,20 @@ class Settings:
     # LLM (Gemini). The key is only ever read from the environment / .env and never logged.
     gemini_model: str = field(default_factory=lambda: _env("GEMINI_MODEL", "gemini-flash-lite-latest"))
     gemini_api_key: str | None = field(default_factory=lambda: os.environ.get("GEMINI_API_KEY"), repr=False)
+    llm_timeout_s: float = field(default_factory=lambda: float(_env("LLM_TIMEOUT_S", "90")))
+
+    # Agent loop budgets
+    agent_max_steps: int = field(default_factory=lambda: int(_env("AGENT_MAX_STEPS", "10")))
+    agent_max_tool_calls: int = field(default_factory=lambda: int(_env("AGENT_MAX_TOOL_CALLS", "25")))
+    agent_tool_result_chars: int = field(default_factory=lambda: int(_env("AGENT_TOOL_RESULT_CHARS", "9000")))
+    pending_action_ttl_s: int = field(default_factory=lambda: int(_env("PENDING_ACTION_TTL_S", "900")))
+
+    # Retraining policy (explicit, so recommendations are evidence-based)
+    retrain_max_model_age_days: int = field(default_factory=lambda: int(_env("RETRAIN_MAX_MODEL_AGE_DAYS", "30")))
+    retrain_min_f1: float = field(default_factory=lambda: float(_env("RETRAIN_MIN_PRODUCTION_F1", "0.45")))
+
+    # API
+    agent_api_key: str | None = field(default_factory=lambda: os.environ.get("AGENT_API_KEY") or None, repr=False)
 
 
 def get_settings() -> Settings:

@@ -170,7 +170,7 @@ def test_registry_info_reports_aliases_and_provenance(registry):
     model = res.data["registered_models"][0]
     assert model["aliases"] == {"champion": "1", "candidate": "2"}
     v1 = next(v for v in model["versions"] if v["version"] == "1")
-    assert v1["aliases"] == ["champion"] and v1["provenance"]["dataset_version"] == "v2.0"
+    assert v1["aliases"] == ["champion"] and v1["provenance"]["dataset_version_tag_unverified"] == "v2.0"
 
 
 def test_run_details_and_unknown_run(registry):

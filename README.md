@@ -10,7 +10,29 @@ Kubernetes (serving), and never from model memory.
 | Task 2: MLflow experiment intelligence | ✅ implemented + tested |
 | Task 3: Airflow workflow agent + training DAG | ✅ implemented + tested |
 | Task 4: Kubernetes operations + FastAPI inference service | ✅ implemented + tested |
-| Integration: LLM orchestrator + FastAPI | ⏳ |
+| Task 5: Multi-tool agent (Gemini) + FastAPI interface | ✅ implemented + tested |
+
+See [architecture.md](architecture.md) for the design, and [docs/conversations/](docs/conversations/) for
+the five assessed scenarios run end-to-end with real tool evidence.
+
+## Quick start: talk to the agent
+
+```bash
+# prerequisites: venv installed, .env filled in (GEMINI_API_KEY, AIRFLOW_ADMIN_PASSWORD), services running:
+docker compose up -d                                  # MLflow + Airflow
+kind create cluster --config kubernetes/kind-cluster.yaml && bash scripts/deploy_serving.sh
+bash scripts/k8s_agent_kubeconfig.sh                  # restricted agent credentials
+
+python -m agent.main                                  # interactive chat (asks before any state change)
+uvicorn api.main:app --port 8100                      # HTTP API, docs at http://localhost:8100/docs
+```
+
+```bash
+curl -s localhost:8100/agent/query -H 'Content-Type: application/json' \
+  -d '{"message": "Find the best recent model, identify the dataset version used to train it, check the deployment status, and explain whether retraining is necessary."}'
+# state-changing requests come back with pending_actions; run one only by confirming its id:
+curl -s localhost:8100/agent/confirm -H 'Content-Type: application/json' -d '{"action_id": "<id>"}'
+```
 
 ## Repository layout
 
@@ -125,7 +147,7 @@ python -m agent.cli restore_dataset_workspace '{}' --confirm
 ## Tests
 
 ```bash
-pytest -q        # 62 tests; DVC uses a temp git+DVC repo; MLflow, Airflow and Kubernetes are mocked
+pytest -q        # 71 tests; DVC uses a temp git+DVC repo; MLflow, Airflow and Kubernetes are mocked
 ruff check .
 ```
 
@@ -147,6 +169,9 @@ ruff check .
 | `K8S_MANAGED_LABEL` | `app.kubernetes.io/part-of=mlops-agent` | only Deployments with this label can be modified |
 | `GEMINI_API_KEY` | - | Gemini API key (put it in `.env`, which is git-ignored) |
 | `GEMINI_MODEL` | `gemini-flash-lite-latest` | model used by the agent |
+| `AGENT_API_KEY` | (unset = open) | require `X-API-Key` on the agent API |
+| `AGENT_MAX_STEPS` / `AGENT_MAX_TOOL_CALLS` | `10` / `25` | agent loop budgets |
+| `RETRAIN_MAX_MODEL_AGE_DAYS` / `RETRAIN_MIN_PRODUCTION_F1` | `30` / `0.45` | retraining policy thresholds |
 
 Copy `.env.example` to `.env` and fill in `GEMINI_API_KEY`.
 
@@ -281,3 +306,42 @@ bash scripts/k8s_agent_kubeconfig.sh                        # restricted agent c
 |---|---|---|
 | ConfigMap `MODEL_DIR` set to a missing path, pods recycled | **UNAVAILABLE, 0 ready endpoints**. Readiness probe 503 + log `MODEL_LOAD_FAILED: model directory not found: /app/models/churn-v2` + the ConfigMap value in use | ConfigMap fixed, then agent `restart_deployment` (confirmed) → healthy |
 | Release with non-existent image `churn-api:1.1.0` | **Still serving** from 2 old pods (`maxUnavailable: 0`), but the new pod is in `ImagePullBackOff`. Image-pull failure with the registry error as evidence | Agent `rollback_deployment` (confirmed), revision 3 → 2, `churn-api:1.0.0` restored |
+
+## Task 5: Multi-tool agent
+
+`agent/orchestrator.py` runs a function-calling loop with **Gemini** (`GEMINI_MODEL`, default
+`gemini-flash-lite-latest`) over all 36 tools. Each tool's pydantic input model becomes the
+function declaration (structured inputs), and each result comes back as a typed `ToolResult`
+(structured outputs). No agent framework is used; see [architecture.md](architecture.md) §8.
+
+**Guarantees enforced in code (not just the prompt)**
+
+| Guarantee | How |
+|---|---|
+| No invented results | a failed tool returns `data: null`; the LLM is told the fact is UNKNOWN; the orchestrator appends a **Data gaps** section to the answer regardless of what the LLM writes |
+| No automatic state changes | a confirmation-required tool call is **parked** as a pending action; only `POST /agent/confirm {action_id}` runs it, once, with the exact arguments shown |
+| Multi-system questions fully covered | before accepting an answer, a coverage check compares the systems the question mentions with the modules actually queried, and sends the model back once if one is missing |
+| Retraining recommended only on evidence | `get_retraining_policy` (data freshness, model age, failed quality gate, supplied degradation); each rule is evaluated as triggered / not triggered / unknown |
+| Bounded cost | step and tool-call budgets, identical-call cache, tool output truncation |
+
+**Interfaces**
+
+| Endpoint | Purpose |
+|---|---|
+| `POST /agent/query` | `{message, session_id?, include_evidence?}` → answer, tool trace, pending actions, data gaps |
+| `GET /agent/pending` | actions awaiting confirmation |
+| `POST /agent/confirm` | `{action_id}` → executes that action once |
+| `GET /tools` | tool catalogue with JSON schemas and permission flags |
+| `GET /health` | API liveness |
+
+Set `AGENT_API_KEY` to require an `X-API-Key` header. Every response carries `X-Request-ID`.
+
+### Demonstration scenarios (`python scripts/run_demo_conversations.py`, API must be running)
+
+| Scenario | Tools the agent chose | Outcome (`docs/conversations/`) |
+|---|---|---|
+| Dataset provenance | get_deployed_version, get_model_versions, get_dataset_version, explain_dataset_reproduction | champion v1 → dataset **v1.1** (md5 verified), exact reproduction commands |
+| Model selection | compare_model_runs, get_dag_runs, diagnose_dag_run | last 5 runs tied on F1 0.497 → picks the one that passed the gate; notes ties and unverified items |
+| Pipeline execution | trigger_training_pipeline → **pending** → confirmed | real Airflow run: 6/6 tasks succeeded, new candidate registered |
+| Deployment diagnosis (live outage injected) | diagnose_service | **unavailable**, 0 endpoints; `MODEL_LOAD_FAILED` + wrong `MODEL_DIR` in ConfigMap; fix ConfigMap then restart (rollback flagged as ineffective) |
+| Multi-tool reasoning (mandatory) | find_best_model, get_model_versions, get_deployed_version, diagnose_service, get_dag_runs, get_retraining_policy, get_dataset_version ×2, get_dataset_history | champion trained on v1.1, latest data v2.0 → **DATA_FRESHNESS triggered**; a gate-passing v2.0 candidate exists, so **review/promote the candidate, don't retrain**. Nothing was triggered |

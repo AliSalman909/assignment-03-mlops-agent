@@ -42,6 +42,19 @@ MODULE = "mlflow"
 METRIC_DIRECTION = {"f1": "max", "precision": "max", "recall": "max", "accuracy": "max", "roc_auc": "max"}
 KEY_METRICS = ["f1", "precision", "recall", "roc_auc", "accuracy"]
 PROVENANCE_TAGS = ["git_commit", "dataset_md5", "dataset_path", "dataset_version", "source", "quality_gate"]
+
+
+def _provenance(tags: dict[str, Any]) -> dict[str, Any]:
+    """Provenance tags of a run. The free-text dataset_version tag is relabelled as unverified: the
+    authoritative version comes from DVC via git_commit + dataset_md5 (get_dataset_version)."""
+    out = {k: tags.get(k) for k in PROVENANCE_TAGS if tags.get(k) and k != "dataset_version"}
+    if tags.get("dataset_version"):
+        out["dataset_version_tag_unverified"] = tags["dataset_version"]
+    if out.get("git_commit") and out.get("dataset_md5"):
+        out["verify_with"] = "get_dataset_version(git_commit, expected_md5=dataset_md5)"
+    return out
+
+
 _NAME_RE = re.compile(r"^[A-Za-z0-9 _.\-/]{1,120}$")
 _RUN_ID_RE = re.compile(r"^[0-9a-f]{32}$")
 _METRIC_RE = re.compile(r"^[A-Za-z0-9_.\-]{1,64}$")
@@ -231,7 +244,7 @@ class MLflowTools:
             "start_time": _ts(run.info.start_time),
             "model_type": run.data.params.get("model_type"),
             "metrics": {k: v for k, v in run.data.metrics.items() if k in KEY_METRICS or k == "train_rows"},
-            "provenance": {k: tags.get(k) for k in PROVENANCE_TAGS if tags.get(k) is not None},
+            "provenance": _provenance(tags),
         }
 
     def _versions_for_runs(self) -> dict[str, list[dict[str, Any]]]:
@@ -515,7 +528,7 @@ class MLflowTools:
                         "description": mv.description,
                         "tags": dict(mv.tags or {}),
                         "metrics": {k: v for k, v in run_metrics.items() if k in KEY_METRICS},
-                        "provenance": {k: run_tags.get(k) for k in PROVENANCE_TAGS if run_tags.get(k)},
+                        "provenance": _provenance(run_tags),
                     }
                 )
             versions.sort(key=lambda v: int(v["version"]), reverse=True)

@@ -7,10 +7,12 @@ def build_registry() -> ToolRegistry:
     from agent.tools.dvc_tools import register_dvc_tools
     from agent.tools.kubernetes_tools import register_kubernetes_tools
     from agent.tools.mlflow_tools import register_mlflow_tools
+    from agent.tools.policy_tools import register_policy_tools
 
     registry = ToolRegistry()
     register_dvc_tools(registry)
     register_mlflow_tools(registry)
     register_airflow_tools(registry)
     register_kubernetes_tools(registry)
+    register_policy_tools(registry)
     return registry

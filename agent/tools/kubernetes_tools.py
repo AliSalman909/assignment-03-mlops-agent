@@ -710,9 +710,19 @@ class KubernetesTools:
                             "evidence": probe_events + [f"log: {ln}" for ln in log_lines],
                             "config_in_use": config,
                             "action": (
-                                "fix the model path/config (see config_in_use and logs), then restart the deployment"
+                                "1) correct the value in the ConfigMap shown in config_in_use (e.g. MODEL_DIR must "
+                                "point to the model directory baked into the image, /app/model); 2) restart_deployment "
+                                "(requires confirmation) so pods reload the configuration"
                                 if model_issue
                                 else "check the readiness endpoint and application logs"
+                            ),
+                            "not_effective": (
+                                [
+                                    "rollback_deployment: ConfigMaps are not part of a Deployment revision, so a "
+                                    "rollback would restart pods with the same broken configuration"
+                                ]
+                                if config
+                                else []
                             ),
                         }
                     )

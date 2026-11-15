@@ -26,9 +26,20 @@ def test_liveness_ok_but_readiness_fails_without_model(client_without_model):
 
 
 def test_predict_refuses_instead_of_guessing_without_model(client_without_model):
-    body = {"customers": [{"tenure_months": 3, "contract_type": "month-to-month", "monthly_charges": 90,
-                           "total_charges": 270, "support_tickets": 2, "num_products": 1,
-                           "internet_service": "fiber", "senior_citizen": 0}]}
+    body = {
+        "customers": [
+            {
+                "tenure_months": 3,
+                "contract_type": "month-to-month",
+                "monthly_charges": 90,
+                "total_charges": 270,
+                "support_tickets": 2,
+                "num_products": 1,
+                "internet_service": "fiber",
+                "senior_citizen": 0,
+            }
+        ]
+    }
     r = client_without_model.post("/predict", json=body)
     assert r.status_code == 503
     assert client_without_model.get("/version").json()["model_loaded"] is False

@@ -38,6 +38,7 @@ include = ["agent*", "api*", "training*", "serving*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 addopts = "-ra"
 markers = [
     "integration: tests that need real services (DVC repo, MLflow, Airflow, Kubernetes)",
@@ -49,3 +50,7 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "W"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI dependency injection uses calls in argument defaults by design
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Header"]

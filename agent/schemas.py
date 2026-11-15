@@ -37,6 +37,37 @@ class ToolResult(BaseModel):
         return self.status == ToolStatus.OK
 
 
+class ToolCallRecord(BaseModel):
+    step: int
+    tool: str
+    arguments: dict[str, Any]
+    status: ToolStatus
+    duration_ms: float
+    error: str | None = None
+
+
+class PendingAction(BaseModel):
+    """A state-changing tool call the LLM requested; it only runs if the user confirms this id."""
+
+    action_id: str
+    tool: str
+    arguments: dict[str, Any]
+    description: str
+    expires_at: float
+
+
+class AgentResponse(BaseModel):
+    request_id: str
+    session_id: str
+    answer: str
+    model: str
+    steps: int
+    tool_calls: list[ToolCallRecord] = Field(default_factory=list)
+    pending_actions: list[PendingAction] = Field(default_factory=list)
+    data_gaps: list[str] = Field(default_factory=list)
+    evidence: list[ToolResult] | None = None
+
+
 class ToolSpec(BaseModel):
     """Provider-agnostic tool description handed to the LLM."""
 
