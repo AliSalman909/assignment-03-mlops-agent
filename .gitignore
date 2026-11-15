@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Secrets / local config
+.env
+*.kubeconfig
+kubeconfig*
+
+# DVC: local remote storage used for the demo (would be S3/GCS/Azure in production)
+/.dvcstore/
+
+# Agent outputs
+/artifacts/
+/logs/
+
+# MLflow local store (when run outside docker)
+/mlruns/
+/mlartifacts/
+
+# Airflow local state
+/airflow/logs/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
