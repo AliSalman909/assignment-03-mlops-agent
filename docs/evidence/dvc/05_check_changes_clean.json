@@ -1,0 +1,22 @@
+{
+  "tool": "dvc_check_changes",
+  "status": "ok",
+  "request_id": "49d0f87de63c",
+  "duration_ms": 1983.66,
+  "data": {
+    "data_changed": false,
+    "workspace_changes": [],
+    "pipeline_stale": false,
+    "stale_stages": [],
+    "uncommitted_dvc_metadata": [],
+    "not_pushed_to_remote": [],
+    "missing_locally": [],
+    "summary": "workspace data matches the committed DVC version"
+  },
+  "error": null,
+  "evidence_source": [
+    "dvc status --json",
+    "git status --porcelain",
+    "dvc status --cloud --json"
+  ]
+}

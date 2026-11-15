@@ -1,0 +1,38 @@
+{
+  "tool": "dvc_check_changes",
+  "status": "ok",
+  "request_id": "62b6e1b89722",
+  "duration_ms": 2012.86,
+  "data": {
+    "data_changed": true,
+    "workspace_changes": [
+      {
+        "target": "data/raw/churn.csv.dvc",
+        "change": "changed outs",
+        "detail": {
+          "data/raw/churn.csv": "modified"
+        }
+      }
+    ],
+    "pipeline_stale": true,
+    "stale_stages": [
+      {
+        "target": "preprocess",
+        "change": "changed deps",
+        "detail": {
+          "data/raw/churn.csv": "modified"
+        }
+      }
+    ],
+    "uncommitted_dvc_metadata": [],
+    "not_pushed_to_remote": [],
+    "missing_locally": [],
+    "summary": "tracked data differs from the committed DVC version"
+  },
+  "error": null,
+  "evidence_source": [
+    "dvc status --json",
+    "git status --porcelain",
+    "dvc status --cloud --json"
+  ]
+}

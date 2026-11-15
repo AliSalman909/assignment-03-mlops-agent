@@ -112,8 +112,6 @@ class SafeCommandRunner:
         ("dvc", ("version",)): False,
         ("dvc", ("status",)): False,
         ("dvc", ("diff",)): False,
-        ("dvc", ("remote", "list")): False,
-        ("dvc", ("remote", "default")): False,
         ("dvc", ("get",)): False,  # writes only to the sandbox dir (checked by the caller)
         ("dvc", ("checkout",)): True,
     }
@@ -335,12 +333,12 @@ class DVCTools:
             "tags_at_commit": tags_at_commit,
         }
 
-    def _remote_info(self) -> dict[str, Any]:
-        """Read remote configuration through DVC's config API (structured, read-only).
+    def _remote_config(self) -> tuple[str | None, dict[str, str]]:
+        """Read remotes through DVC's config API (structured, read-only).
 
         `dvc remote list` output is formatted for humans (wrapping, "(default)" markers) and breaks
-        on paths containing spaces, so the config object is used instead. Local relative URLs are
-        resolved against the .dvc directory, exactly as DVC itself does.
+        on paths containing spaces, so the config object is used instead. DVC resolves local
+        relative URLs to absolute paths itself. Returns raw URLs - use `_remote_info` for display.
         """
         try:
             from dvc.config import Config
@@ -350,27 +348,31 @@ class DVCTools:
             cfg = Config(dvc_dir=str(self.root / ".dvc"))
         except Exception as exc:  # noqa: BLE001 - malformed config is an operational error, not a crash
             raise ToolError(f"could not read DVC config: {type(exc).__name__}: {exc}") from exc
+        remotes = {name: str(conf.get("url", "")) for name, conf in (cfg.get("remote") or {}).items()}
+        return (cfg.get("core") or {}).get("remote"), remotes
+
+    def _remote_info(self) -> dict[str, Any]:
+        """Remote config safe to show/log: credentials redacted, local paths made repo-relative."""
+        default, raw = self._remote_config()
         remotes = {}
-        for name, conf in (cfg.get("remote") or {}).items():
-            url = str(conf.get("url", ""))
-            if url and "://" not in url and not Path(url).is_absolute():
-                url = str((self.root / ".dvc" / url).resolve())
+        for name, url in raw.items():
+            if url and "://" not in url:
+                try:
+                    url = Path(url).resolve().relative_to(self.root).as_posix()
+                except ValueError:
+                    url = f"<local directory outside repo>/{Path(url).name}"
             remotes[name] = redact(url)
-        default = (cfg.get("core") or {}).get("remote")
         return {"default_remote": default, "remotes": remotes}
 
     def _cache_path(self, md5: str) -> Path:
         return self.root / ".dvc" / "cache" / "files" / "md5" / md5[:2] / md5[2:]
 
     def _remote_object_path(self, md5: str) -> Path | None:
-        info = self._remote_info()
-        url = info["remotes"].get(info["default_remote"] or "", "")
+        default, raw = self._remote_config()
+        url = raw.get(default or "", "")
         if not url or "://" in url:
-            return None  # cloud remote - existence checked via dvc status --cloud instead
-        base = Path(url)
-        if not base.is_absolute():
-            base = (self.root / ".dvc" / base).resolve()
-        return base / "files" / "md5" / md5[:2] / md5[2:]
+            return None  # cloud remote - existence is checked via `dvc status --cloud` instead
+        return Path(url).resolve() / "files" / "md5" / md5[:2] / md5[2:]
 
     def _load_frame(self, path: str, rev: str):
         """Read a version's content via the DVC Python API (cache first, then remote)."""
@@ -446,7 +448,9 @@ class DVCTools:
         if p.expected_md5:
             data["expected_md5"] = p.expected_md5
             data["md5_matches_expected"] = p.expected_md5 == record["md5"]
-        return ToolOutput(data=data, evidence_source=[f"git show {sha[:8]}:{tracker}", "git tags", "dvc remote list"])
+        return ToolOutput(
+            data=data, evidence_source=[f"git show {sha[:8]}:{tracker}", "git tags", "dvc config (remotes)"]
+        )
 
     def dataset_history(self, p: DatasetHistoryInput) -> ToolOutput:
         head = self._resolve_commit("HEAD")
@@ -545,7 +549,9 @@ class DVCTools:
                 if not isinstance(entry, dict):
                     continue
                 for kind, detail in entry.items():
-                    item = {"target": target, "change": kind, "detail": detail}
+                    if isinstance(detail, dict):  # normalise Windows separators for stable output
+                        detail = {str(k).replace("\\", "/"): v for k, v in detail.items()}
+                    item = {"target": target.replace("\\", "/"), "change": kind, "detail": detail}
                     (workspace_changes if target.endswith(".dvc") else stale_stages).append(item)
 
         porcelain = self._git("status", "--porcelain", "--", "*.dvc", "dvc.lock", "dvc.yaml").strip()
@@ -627,7 +633,7 @@ class DVCTools:
                     **remote,
                 },
             },
-            evidence_source=[f"git show {short}:{tracker}", "dvc remote list", "local cache/remote object lookup"],
+            evidence_source=[f"git show {short}:{tracker}", "dvc config (remotes)", "local cache/remote object lookup"],
         )
 
     def materialize_version(self, p: MaterializeInput) -> ToolOutput:

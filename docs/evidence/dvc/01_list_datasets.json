@@ -1,0 +1,49 @@
+{
+  "tool": "dvc_list_datasets",
+  "status": "ok",
+  "request_id": "28b9240692d8",
+  "duration_ms": 88.01,
+  "data": {
+    "revision": "HEAD",
+    "commit": "0fb9ea26b505fedcbe6ad0045370e36386685030",
+    "count": 4,
+    "datasets": [
+      {
+        "path": "data/raw/churn.csv",
+        "tracked_by": "data/raw/churn.csv.dvc",
+        "md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+        "size_bytes": 313432,
+        "nfiles": null,
+        "hash_algo": "md5",
+        "kind": "dvc add (raw input)"
+      },
+      {
+        "path": "data/processed/stats.json",
+        "tracked_by": "dvc.lock (stage 'preprocess')",
+        "md5": "4d931117d36999089d573de5ea52d1f4",
+        "size_bytes": 391,
+        "kind": "pipeline output"
+      },
+      {
+        "path": "data/processed/test.csv",
+        "tracked_by": "dvc.lock (stage 'preprocess')",
+        "md5": "0e4c363e92c08504830590d3fd748260",
+        "size_bytes": 46896,
+        "kind": "pipeline output"
+      },
+      {
+        "path": "data/processed/train.csv",
+        "tracked_by": "dvc.lock (stage 'preprocess')",
+        "md5": "57e36676bdcf4559e4b35203c636a407",
+        "size_bytes": 186928,
+        "kind": "pipeline output"
+      }
+    ]
+  },
+  "error": null,
+  "evidence_source": [
+    "git ls-tree 0fb9ea26",
+    "*.dvc files",
+    "dvc.lock"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "tool": "dvc_restore_workspace",
+  "status": "ok",
+  "request_id": "b819ea482da5",
+  "duration_ms": 997.4,
+  "data": {
+    "path": "data/raw/churn.csv",
+    "restored_to_md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+    "workspace_md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+    "verified": true
+  },
+  "error": null,
+  "evidence_source": [
+    "dvc checkout data/raw/churn.csv.dvc",
+    "md5 verification"
+  ]
+}

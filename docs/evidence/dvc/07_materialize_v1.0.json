@@ -1,0 +1,26 @@
+{
+  "tool": "dvc_materialize_version",
+  "status": "ok",
+  "request_id": "5b50dedb796d",
+  "duration_ms": 1352.36,
+  "data": {
+    "path": "data/raw/churn.csv",
+    "commit": "4ebc9ee898c55586f9f25163652ac56115f84ba9",
+    "version": "v1.0",
+    "version_tag": "data-v1.0",
+    "identified_by": "content md5 matches tagged version",
+    "tags_at_commit": [
+      "data-v1.0"
+    ],
+    "output_file": "artifacts/reproduced/4ebc9ee8/churn.csv",
+    "recorded_md5": "43d9a0e1e27072f54279b3b20211be11",
+    "reproduced_md5": "43d9a0e1e27072f54279b3b20211be11",
+    "verified": true,
+    "size_bytes": 201257
+  },
+  "error": null,
+  "evidence_source": [
+    "dvc get --rev 4ebc9ee8",
+    "md5 verification of reproduced bytes"
+  ]
+}

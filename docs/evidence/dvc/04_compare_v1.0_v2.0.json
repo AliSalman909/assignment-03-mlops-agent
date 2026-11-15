@@ -1,0 +1,90 @@
+{
+  "tool": "dvc_compare_versions",
+  "status": "ok",
+  "request_id": "de1fb0edda95",
+  "duration_ms": 2737.65,
+  "data": {
+    "path": "data/raw/churn.csv",
+    "a": {
+      "revision": "data-v1.0",
+      "commit": "4ebc9ee898c55586f9f25163652ac56115f84ba9",
+      "md5": "43d9a0e1e27072f54279b3b20211be11",
+      "size_bytes": 201257,
+      "version": "v1.0",
+      "version_tag": "data-v1.0",
+      "identified_by": "content md5 matches tagged version",
+      "tags_at_commit": [
+        "data-v1.0"
+      ]
+    },
+    "b": {
+      "revision": "data-v2.0",
+      "commit": "e8f5aaf75a16c27d26e3b4bdf3bfd7000bd973a9",
+      "md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+      "size_bytes": 313432,
+      "version": "v2.0",
+      "version_tag": "data-v2.0",
+      "identified_by": "content md5 matches tagged version",
+      "tags_at_commit": [
+        "data-v2.0"
+      ]
+    },
+    "content_identical": false,
+    "size_delta_bytes": 112175,
+    "dvc_diff": {
+      "modified": [
+        "data\\processed\\test.csv",
+        "data\\processed\\train.csv",
+        "data\\raw\\churn.csv"
+      ]
+    },
+    "content": {
+      "a": {
+        "rows": 4040,
+        "columns": [
+          "customer_id",
+          "tenure_months",
+          "contract_type",
+          "monthly_charges",
+          "total_charges",
+          "support_tickets",
+          "num_products",
+          "internet_service",
+          "senior_citizen",
+          "churned"
+        ],
+        "duplicate_rows": 40,
+        "positive_rate": 0.2653
+      },
+      "b": {
+        "rows": 6000,
+        "columns": [
+          "customer_id",
+          "tenure_months",
+          "contract_type",
+          "monthly_charges",
+          "total_charges",
+          "support_tickets",
+          "num_products",
+          "internet_service",
+          "senior_citizen",
+          "last_login_days",
+          "churned"
+        ],
+        "duplicate_rows": 0,
+        "positive_rate": 0.2298
+      },
+      "row_delta": 1960,
+      "columns_added": [
+        "last_login_days"
+      ],
+      "columns_removed": []
+    }
+  },
+  "error": null,
+  "evidence_source": [
+    "git show 4ebc9ee8/e8f5aaf7 DVC records",
+    "dvc diff 4ebc9ee8 e8f5aaf7",
+    "dvc.api.read (content statistics)"
+  ]
+}

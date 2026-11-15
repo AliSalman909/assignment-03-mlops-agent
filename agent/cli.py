@@ -1,8 +1,8 @@
 """Call a single agent tool directly - useful for debugging and for collecting evidence.
 
-    python -m agent.cli list
-    python -m agent.cli dvc_get_dataset_version '{"rev": "data-v1.1"}'
-    python -m agent.cli dvc_restore_workspace '{}' --confirm
+python -m agent.cli list
+python -m agent.cli dvc_get_dataset_version '{"rev": "data-v1.1"}'
+python -m agent.cli dvc_restore_workspace '{}' --confirm
 """
 
 from __future__ import annotations

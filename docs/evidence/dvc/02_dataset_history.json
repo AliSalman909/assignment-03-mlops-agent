@@ -1,0 +1,51 @@
+{
+  "tool": "dvc_dataset_history",
+  "status": "ok",
+  "request_id": "ec5933268073",
+  "duration_ms": 204.98,
+  "data": {
+    "path": "data/raw/churn.csv",
+    "tracked_by": "data/raw/churn.csv.dvc",
+    "versions": [
+      {
+        "commit": "e8f5aaf75a16c27d26e3b4bdf3bfd7000bd973a9",
+        "short_commit": "e8f5aaf",
+        "commit_date": "2026-11-15T14:12:21+05:00",
+        "commit_message": "Dataset v2.0: add last_login_days feature, dedup, reduce label noise",
+        "md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+        "size_bytes": 313432,
+        "tags": [
+          "data-v2.0"
+        ]
+      },
+      {
+        "commit": "0f4a61990e9ef14143179c22eed7d951bd571c9b",
+        "short_commit": "0f4a619",
+        "commit_date": "2026-11-15T14:12:05+05:00",
+        "commit_message": "Dataset v1.1: +2k newly collected customers",
+        "md5": "45d0f04af574f1b29a3867bf1fcae39c",
+        "size_bytes": 301695,
+        "tags": [
+          "data-v1.1"
+        ]
+      },
+      {
+        "commit": "4ebc9ee898c55586f9f25163652ac56115f84ba9",
+        "short_commit": "4ebc9ee",
+        "commit_date": "2026-11-15T14:11:50+05:00",
+        "commit_message": "Dataset v1.0: initial churn data drop (4k rows)",
+        "md5": "43d9a0e1e27072f54279b3b20211be11",
+        "size_bytes": 201257,
+        "tags": [
+          "data-v1.0"
+        ]
+      }
+    ],
+    "count": 3
+  },
+  "error": null,
+  "evidence_source": [
+    "git log -- data/raw/churn.csv.dvc",
+    "git tags"
+  ]
+}
