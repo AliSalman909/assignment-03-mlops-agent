@@ -1,0 +1,9 @@
+{
+  "tool": "restart_deployment",
+  "status": "confirmation_required",
+  "request_id": "405e6e60c095",
+  "duration_ms": 0.03,
+  "data": null,
+  "error": "'restart_deployment' changes state and requires explicit user confirmation; nothing was executed",
+  "evidence_source": []
+}

@@ -1,0 +1,149 @@
+{
+  "tool": "find_unhealthy_pods",
+  "status": "ok",
+  "request_id": "e4977dd56133",
+  "duration_ms": 977.57,
+  "data": {
+    "namespace": "mlops",
+    "total_pods": 2,
+    "unhealthy_count": 2,
+    "unhealthy_pods": [
+      {
+        "name": "churn-api-5c86448b45-crfc7",
+        "phase": "Running",
+        "ready": false,
+        "restarts": 0,
+        "age": "0m33s",
+        "node": "mlops-control-plane",
+        "pod_ip": "10.244.0.8",
+        "version_label": "1.0.0",
+        "containers": [
+          {
+            "name": "churn-api",
+            "image": "docker.io/library/churn-api:1.0.0",
+            "ready": false,
+            "restart_count": 0,
+            "state": "running",
+            "started_at": "2026-11-15T11:32:20Z"
+          }
+        ],
+        "problems": [
+          "container churn-api running but not ready (readiness probe failing)"
+        ],
+        "healthy": false
+      },
+      {
+        "name": "churn-api-5c86448b45-w995t",
+        "phase": "Running",
+        "ready": false,
+        "restarts": 0,
+        "age": "0m33s",
+        "node": "mlops-control-plane",
+        "pod_ip": "10.244.0.7",
+        "version_label": "1.0.0",
+        "containers": [
+          {
+            "name": "churn-api",
+            "image": "docker.io/library/churn-api:1.0.0",
+            "ready": false,
+            "restart_count": 0,
+            "state": "running",
+            "started_at": "2026-11-15T11:32:20Z"
+          }
+        ],
+        "problems": [
+          "container churn-api running but not ready (readiness probe failing)"
+        ],
+        "healthy": false
+      }
+    ],
+    "pods_with_restarts": [],
+    "restart_and_probe_events": [
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-crfc7",
+        "message": "Readiness probe failed: HTTP probe failed with statuscode: 503",
+        "count": 7,
+        "last_seen": "2026-11-15T11:32:48Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-w995t",
+        "message": "Readiness probe failed: HTTP probe failed with statuscode: 503",
+        "count": 7,
+        "last_seen": "2026-11-15T11:32:48Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-crfc7",
+        "message": "Startup probe failed: Get \"http://10.244.0.8:8000/health/live\": dial tcp 10.244.0.8:8000: connect: connection refused",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:21Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-w995t",
+        "message": "Startup probe failed: Get \"http://10.244.0.7:8000/health/live\": dial tcp 10.244.0.7:8000: connect: connection refused",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:21Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-bpfwp",
+        "message": "Readiness probe failed: Get \"http://10.244.0.5:8000/health/ready\": dial tcp 10.244.0.5:8000: connect: connection refused",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:20Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-njwfm",
+        "message": "Readiness probe failed: Get \"http://10.244.0.6:8000/health/ready\": dial tcp 10.244.0.6:8000: connect: connection refused",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:20Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Killing",
+        "object": "Pod/churn-api-5c86448b45-bpfwp",
+        "message": "Stopping container churn-api",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:19Z"
+      },
+      {
+        "type": "Normal",
+        "reason": "Killing",
+        "object": "Pod/churn-api-5c86448b45-njwfm",
+        "message": "Stopping container churn-api",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:19Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-bpfwp",
+        "message": "Startup probe failed: Get \"http://10.244.0.5:8000/health/live\": dial tcp 10.244.0.5:8000: connect: connection refused",
+        "count": 7,
+        "last_seen": "2026-11-15T11:28:03Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-njwfm",
+        "message": "Startup probe failed: Get \"http://10.244.0.6:8000/health/live\": dial tcp 10.244.0.6:8000: connect: connection refused",
+        "count": 7,
+        "last_seen": "2026-11-15T11:28:03Z"
+      }
+    ]
+  },
+  "error": null,
+  "evidence_source": [
+    "GET pods (ns=mlops)",
+    "GET events (ns=mlops)"
+  ]
+}

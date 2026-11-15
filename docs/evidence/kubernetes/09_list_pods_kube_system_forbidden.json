@@ -1,0 +1,9 @@
+{
+  "tool": "list_pods",
+  "status": "forbidden",
+  "request_id": "eecc67a52793",
+  "duration_ms": 0.04,
+  "data": null,
+  "error": "namespace 'kube-system' is not approved for this agent (approved: ['mlops'])",
+  "evidence_source": []
+}

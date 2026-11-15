@@ -1,0 +1,61 @@
+{
+  "tool": "list_pods",
+  "status": "ok",
+  "request_id": "7d4e5ad50f3b",
+  "duration_ms": 1088.49,
+  "data": {
+    "namespace": "mlops",
+    "count": 2,
+    "unhealthy": 0,
+    "pods": [
+      {
+        "name": "churn-api-5c86448b45-bpfwp",
+        "phase": "Running",
+        "ready": true,
+        "restarts": 0,
+        "age": "4m19s",
+        "node": "mlops-control-plane",
+        "pod_ip": "10.244.0.5",
+        "version_label": "1.0.0",
+        "containers": [
+          {
+            "name": "churn-api",
+            "image": "docker.io/library/churn-api:1.0.0",
+            "ready": true,
+            "restart_count": 0,
+            "state": "running",
+            "started_at": "2026-11-15T11:27:50Z"
+          }
+        ],
+        "problems": [],
+        "healthy": true
+      },
+      {
+        "name": "churn-api-5c86448b45-njwfm",
+        "phase": "Running",
+        "ready": true,
+        "restarts": 0,
+        "age": "4m19s",
+        "node": "mlops-control-plane",
+        "pod_ip": "10.244.0.6",
+        "version_label": "1.0.0",
+        "containers": [
+          {
+            "name": "churn-api",
+            "image": "docker.io/library/churn-api:1.0.0",
+            "ready": true,
+            "restart_count": 0,
+            "state": "running",
+            "started_at": "2026-11-15T11:27:50Z"
+          }
+        ],
+        "problems": [],
+        "healthy": true
+      }
+    ]
+  },
+  "error": null,
+  "evidence_source": [
+    "GET /api/v1/namespaces/mlops/pods"
+  ]
+}

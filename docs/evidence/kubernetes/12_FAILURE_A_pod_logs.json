@@ -1,0 +1,24 @@
+{
+  "tool": "get_pod_logs",
+  "status": "ok",
+  "request_id": "fdc3990d16fe",
+  "duration_ms": 1002.17,
+  "data": {
+    "namespace": "mlops",
+    "pod": "churn-api-5c86448b45-w995t",
+    "previous": false,
+    "line_count": 6,
+    "lines": [
+      "INFO:     Started server process [1]",
+      "INFO:     Waiting for application startup.",
+      "{\"ts\":\"2026-11-15 11:32:22,082\",\"level\":\"INFO\",\"logger\":\"churn-api\",\"msg\":\"starting churn-api 1.0.0 (model dir /app/models/churn-v2)\"}",
+      "{\"ts\":\"2026-11-15 11:32:22,082\",\"level\":\"ERROR\",\"logger\":\"churn-api\",\"msg\":\"MODEL_LOAD_FAILED FileNotFoundError: model directory not found: /app/models/churn-v2/mlflow_model\"}",
+      "INFO:     Application startup complete.",
+      "INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)"
+    ]
+  },
+  "error": null,
+  "evidence_source": [
+    "GET pods/churn-api-5c86448b45-w995t/log?tailLines=20&previous=False"
+  ]
+}

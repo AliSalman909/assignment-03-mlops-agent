@@ -1,0 +1,30 @@
+{
+  "tool": "list_deployments",
+  "status": "ok",
+  "request_id": "5bfa34aef5a5",
+  "duration_ms": 941.8,
+  "data": {
+    "namespace": "mlops",
+    "count": 1,
+    "deployments": [
+      {
+        "name": "churn-api",
+        "desired_replicas": 2,
+        "ready_replicas": 2,
+        "updated_replicas": 2,
+        "available_replicas": 2,
+        "unavailable_replicas": 0,
+        "images": [
+          "churn-api:1.0.0"
+        ],
+        "revision": "1",
+        "rollout": "complete",
+        "available": true
+      }
+    ]
+  },
+  "error": null,
+  "evidence_source": [
+    "GET /apis/apps/v1/namespaces/mlops/deployments"
+  ]
+}

@@ -9,7 +9,7 @@ Kubernetes (serving), and never from model memory.
 | Task 1: DVC data management | ✅ implemented + tested |
 | Task 2: MLflow experiment intelligence | ✅ implemented + tested |
 | Task 3: Airflow workflow agent + training DAG | ✅ implemented + tested |
-| Task 4: Kubernetes operations | ⏳ |
+| Task 4: Kubernetes operations + FastAPI inference service | ✅ implemented + tested |
 | Integration: LLM orchestrator + FastAPI | ⏳ |
 
 ## Repository layout
@@ -25,7 +25,10 @@ agent/
     dvc_tools.py       Task 1
     mlflow_tools.py    Task 2 (MlflowClient, read-only)
     airflow_tools.py   Task 3 (Airflow 3 REST API v2, JWT auth)
+    kubernetes_tools.py Task 4 (official Python client, namespace allow-list, RBAC)
 dags/training_pipeline.py     Airflow training DAG
+serving/                      FastAPI inference service (app.py, Dockerfile, export_model.py)
+kubernetes/                   namespace, configmap, deployment, service, agent-rbac, kind-cluster
 docker/airflow/               Airflow 3.4 image (+ scikit-learn, mlflow-skinny, skops)
 docker-compose.yml            MLflow 3.18 server + Airflow 3.4
 scripts/generate_dataset.py   deterministic dataset generator (v1.0, v1.1, v2.0)
@@ -122,7 +125,7 @@ python -m agent.cli restore_dataset_workspace '{}' --confirm
 ## Tests
 
 ```bash
-pytest -q        # 44 tests; DVC uses a temp git+DVC repo, MLflow/Airflow are mocked
+pytest -q        # 62 tests; DVC uses a temp git+DVC repo; MLflow, Airflow and Kubernetes are mocked
 ruff check .
 ```
 
@@ -139,6 +142,9 @@ ruff check .
 | `AIRFLOW_BASE_URL` | `http://localhost:8080` | Airflow API |
 | `AIRFLOW_USERNAME` / `AIRFLOW_ADMIN_PASSWORD` | `admin` / - | Airflow credentials (also used by docker compose) |
 | `AIRFLOW_APPROVED_DAGS` | `churn_training_pipeline` | DAGs the agent may trigger |
+| `K8S_KUBECONFIG` | (default kubeconfig) | kubeconfig the agent uses; use the restricted one in `.secrets/` |
+| `K8S_NAMESPACE` / `K8S_APPROVED_NAMESPACES` | `mlops` / `mlops` | default namespace / namespaces the agent may touch |
+| `K8S_MANAGED_LABEL` | `app.kubernetes.io/part-of=mlops-agent` | only Deployments with this label can be modified |
 | `GEMINI_API_KEY` | - | Gemini API key (put it in `.env`, which is git-ignored) |
 | `GEMINI_MODEL` | `gemini-flash-lite-latest` | model used by the agent |
 
@@ -215,3 +221,63 @@ Regenerate MLflow/Airflow evidence (runs the 3 injected failures; needs the stac
 | `corrupt_data` | `validate_dataset` failed, **data layer**: `missing=['churned']`, duplicates 11.8% | blocked (5 tasks `upstream_failed`) |
 | `min_f1: 0.60` | `quality_gate` failed, **model layer**: `f1 0.4970 < min_f1 0.6` | blocked (`register_candidate` never ran) |
 | `transient_error` | `preprocess_data` failed on attempt 1, succeeded on retry: **recovered** | allowed |
+
+## Task 4: Kubernetes deployment and operations
+
+### The application
+
+`serving/app.py` is a FastAPI inference service for the registered **champion** model.
+`serving/export_model.py` pulls it from the MLflow registry into the image together with its
+lineage (registry version, run id, dataset version verified through the DVC tool).
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /health/live` | liveness: the process is responsive |
+| `GET /health/ready` | readiness: the model is loaded (503 otherwise, so Kubernetes stops routing to it) |
+| `GET /version` | app version + model lineage |
+| `POST /predict` | churn probability + label for 1-1000 customers (validated input) |
+
+Manifests (`kubernetes/`): **Deployment** with 2 replicas, rolling update `maxUnavailable: 0`,
+**startup/readiness/liveness probes**, **CPU/memory requests and limits**, non-root with all
+capabilities dropped, and model lineage annotations. Plus a **ClusterIP Service** and a
+**ConfigMap** for non-sensitive settings.
+
+```bash
+kind create cluster --config kubernetes/kind-cluster.yaml   # local cluster in Docker (or use Docker Desktop k8s)
+bash scripts/deploy_serving.sh                              # export model -> build -> kind load -> apply
+bash scripts/k8s_agent_kubeconfig.sh                        # restricted agent credentials -> .secrets/
+```
+
+### Agent permissions (defence in depth)
+
+1. **Tool layer:** every namespace is checked against `K8S_APPROVED_NAMESPACES`. Restart, scale
+   and rollback require **explicit confirmation**, only touch Deployments labelled
+   `app.kubernetes.io/part-of=mlops-agent`, and scaling is capped at `K8S_MAX_REPLICAS`.
+2. **Credentials:** `kubernetes/agent-rbac.yaml` gives the agent's ServiceAccount read access to
+   the app's resources and `patch` on Deployments, **in `mlops` only**. Verified with `kubectl auth can-i`:
+   it can't delete pods, read secrets, or see `kube-system`.
+
+### Tools
+
+| Tool | Parameters | Kind | What it does |
+|---|---|---|---|
+| `list_pods` | `namespace`, `label_selector` | read | pods, phase, readiness, restarts, detected problems |
+| `list_deployments` | `namespace` | read | desired/ready/updated replicas, images, revision, rollout state |
+| `get_pod_status` | `pod_name`, `namespace` | read | container states, last termination (OOMKilled...), probes, resources, events |
+| `get_pod_logs` | `pod_name`, `namespace`, `tail_lines`, `previous` | read | container logs (or the crashed instance's), redacted |
+| `list_services` | `namespace` | read | type, ports, selector, ready endpoints |
+| `inspect_service` | `service_name`, `namespace`, `check_health` | read | endpoints, matching pods, live `/health/ready` through the API server |
+| `find_unhealthy_pods` | `namespace` | read | not-ready / CrashLoopBackOff / ImagePullBackOff / OOMKilled pods, restart and probe events |
+| `get_events` | `namespace`, `object_name`, `warnings_only`, `limit` | read | events, newest first |
+| `get_deployed_version` | `deployment_name`, `namespace` | read | image, app version, model lineage, revision, live `/version` |
+| `diagnose_service` | `service_name`, `namespace` | read | "why is my prediction API unavailable?": evidence-based diagnosis + action |
+| `restart_deployment` | `deployment_name`, `namespace` | **state-changing** | rolling restart (**confirmation required**) |
+| `scale_deployment` | `deployment_name`, `replicas`, `namespace` | **state-changing** | bounded scaling (**confirmation required**) |
+| `rollback_deployment` | `deployment_name`, `to_revision`, `namespace` | **state-changing** | roll back to a previous ReplicaSet revision (**confirmation required**) |
+
+### Injected outages (`bash scripts/collect_k8s_evidence.sh`, evidence in `docs/evidence/kubernetes/`)
+
+| Injection | Agent diagnosis | Resolution |
+|---|---|---|
+| ConfigMap `MODEL_DIR` set to a missing path, pods recycled | **UNAVAILABLE, 0 ready endpoints**. Readiness probe 503 + log `MODEL_LOAD_FAILED: model directory not found: /app/models/churn-v2` + the ConfigMap value in use | ConfigMap fixed, then agent `restart_deployment` (confirmed) → healthy |
+| Release with non-existent image `churn-api:1.1.0` | **Still serving** from 2 old pods (`maxUnavailable: 0`), but the new pod is in `ImagePullBackOff`. Image-pull failure with the registry error as evidence | Agent `rollback_deployment` (confirmed), revision 3 → 2, `churn-api:1.0.0` restored |

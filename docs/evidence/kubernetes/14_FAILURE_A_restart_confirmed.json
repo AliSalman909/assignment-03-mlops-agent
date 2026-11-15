@@ -1,0 +1,17 @@
+{
+  "tool": "restart_deployment",
+  "status": "ok",
+  "request_id": "6bf3c7e2fd9c",
+  "duration_ms": 1002.2,
+  "data": {
+    "namespace": "mlops",
+    "deployment": "churn-api",
+    "action": "rolling restart",
+    "restarted_at": "2026-11-15T11:32:58.201402+00:00",
+    "note": "pods are replaced one at a time (maxUnavailable=0); check status with list_pods"
+  },
+  "error": null,
+  "evidence_source": [
+    "PATCH deployments/churn-api (restartedAt annotation)"
+  ]
+}

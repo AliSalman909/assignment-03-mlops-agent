@@ -1,0 +1,9 @@
+{
+  "tool": "restart_deployment",
+  "status": "forbidden",
+  "request_id": "2208b222e148",
+  "duration_ms": 0.04,
+  "data": null,
+  "error": "namespace 'kube-system' is not approved for this agent (approved: ['mlops'])",
+  "evidence_source": []
+}

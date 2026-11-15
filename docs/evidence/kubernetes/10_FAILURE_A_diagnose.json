@@ -1,0 +1,156 @@
+{
+  "tool": "diagnose_service",
+  "status": "ok",
+  "request_id": "1055d842a9fc",
+  "duration_ms": 1126.12,
+  "data": {
+    "namespace": "mlops",
+    "service": "churn-api",
+    "status": "unavailable",
+    "summary": "service is UNAVAILABLE: 0 ready endpoints. Most likely cause: readiness probe failing because the model failed to load",
+    "ready_endpoints": [],
+    "not_ready_endpoints": [
+      "churn-api-5c86448b45-w995t",
+      "churn-api-5c86448b45-crfc7"
+    ],
+    "health_check": {
+      "path": "/health/ready",
+      "ok": false,
+      "error": "Kubernetes API error HTTP 503"
+    },
+    "deployments": [
+      {
+        "name": "churn-api",
+        "desired_replicas": 2,
+        "ready_replicas": 0,
+        "updated_replicas": 2,
+        "available_replicas": 0,
+        "unavailable_replicas": 2,
+        "images": [
+          "churn-api:1.0.0"
+        ],
+        "revision": "1",
+        "rollout": "in progress / degraded",
+        "available": false
+      }
+    ],
+    "pods": [
+      {
+        "name": "churn-api-5c86448b45-crfc7",
+        "phase": "Running",
+        "ready": false,
+        "restarts": 0,
+        "problems": [
+          "container churn-api running but not ready (readiness probe failing)"
+        ]
+      },
+      {
+        "name": "churn-api-5c86448b45-w995t",
+        "phase": "Running",
+        "ready": false,
+        "restarts": 0,
+        "problems": [
+          "container churn-api running but not ready (readiness probe failing)"
+        ]
+      }
+    ],
+    "findings": [
+      {
+        "layer": "application",
+        "issue": "readiness probe failing because the model failed to load",
+        "evidence": [
+          "event Unhealthy: Readiness probe failed: HTTP probe failed with statuscode: 503",
+          "event Unhealthy: Startup probe failed: Get \"http://10.244.0.8:8000/health/live\": dial tcp 10.244.0.8:8000: connect: connection refused",
+          "log: {\"ts\":\"2026-11-15 11:32:22,129\",\"level\":\"ERROR\",\"logger\":\"churn-api\",\"msg\":\"MODEL_LOAD_FAILED FileNotFoundError: model directory not found: /app/models/churn-v2/mlflow_model\"}"
+        ],
+        "config_in_use": {
+          "churn-api-config": {
+            "APP_ENV": "demo",
+            "DECISION_THRESHOLD": "",
+            "LOG_LEVEL": "INFO",
+            "MODEL_DIR": "/app/models/churn-v2",
+            "STARTUP_DELAY_S": "0"
+          }
+        },
+        "action": "fix the model path/config (see config_in_use and logs), then restart the deployment"
+      }
+    ],
+    "recent_warning_events": [
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-crfc7",
+        "message": "Readiness probe failed: HTTP probe failed with statuscode: 503",
+        "count": 7,
+        "last_seen": "2026-11-15T11:32:48Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-w995t",
+        "message": "Readiness probe failed: HTTP probe failed with statuscode: 503",
+        "count": 7,
+        "last_seen": "2026-11-15T11:32:48Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-crfc7",
+        "message": "Startup probe failed: Get \"http://10.244.0.8:8000/health/live\": dial tcp 10.244.0.8:8000: connect: connection refused",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:21Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-w995t",
+        "message": "Startup probe failed: Get \"http://10.244.0.7:8000/health/live\": dial tcp 10.244.0.7:8000: connect: connection refused",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:21Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-bpfwp",
+        "message": "Readiness probe failed: Get \"http://10.244.0.5:8000/health/ready\": dial tcp 10.244.0.5:8000: connect: connection refused",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:20Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-njwfm",
+        "message": "Readiness probe failed: Get \"http://10.244.0.6:8000/health/ready\": dial tcp 10.244.0.6:8000: connect: connection refused",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:20Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-bpfwp",
+        "message": "Startup probe failed: Get \"http://10.244.0.5:8000/health/live\": dial tcp 10.244.0.5:8000: connect: connection refused",
+        "count": 7,
+        "last_seen": "2026-11-15T11:28:03Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-njwfm",
+        "message": "Startup probe failed: Get \"http://10.244.0.6:8000/health/live\": dial tcp 10.244.0.6:8000: connect: connection refused",
+        "count": 7,
+        "last_seen": "2026-11-15T11:28:03Z"
+      }
+    ]
+  },
+  "error": null,
+  "evidence_source": [
+    "GET services/churn-api",
+    "GET endpointslices",
+    "GET pods?labelSelector=app.kubernetes.io/name=churn-api",
+    "GET services/proxy/health/ready",
+    "GET deployments",
+    "GET events (warnings)",
+    "GET pods/churn-api-5c86448b45-crfc7/log",
+    "GET configmaps/churn-api-config"
+  ]
+}

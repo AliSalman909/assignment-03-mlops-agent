@@ -1,0 +1,157 @@
+{
+  "tool": "diagnose_service",
+  "status": "ok",
+  "request_id": "230502af877b",
+  "duration_ms": 1136.58,
+  "data": {
+    "namespace": "mlops",
+    "service": "churn-api",
+    "status": "available",
+    "summary": "service is still serving from 2 ready pod(s), but there are problems that need attention (e.g. a stuck rollout)",
+    "ready_endpoints": [
+      "churn-api-5f695864cd-jx72b",
+      "churn-api-5f695864cd-768c4"
+    ],
+    "not_ready_endpoints": [
+      "churn-api-546d8797bf-7lwbg"
+    ],
+    "health_check": {
+      "path": "/health/ready",
+      "ok": true,
+      "response": {
+        "status": "ready",
+        "model_version": "1"
+      }
+    },
+    "deployments": [
+      {
+        "name": "churn-api",
+        "desired_replicas": 2,
+        "ready_replicas": 2,
+        "updated_replicas": 1,
+        "available_replicas": 2,
+        "unavailable_replicas": 1,
+        "images": [
+          "churn-api:1.1.0"
+        ],
+        "revision": "3",
+        "rollout": "in progress / degraded",
+        "available": true
+      }
+    ],
+    "pods": [
+      {
+        "name": "churn-api-546d8797bf-7lwbg",
+        "phase": "Pending",
+        "ready": false,
+        "restarts": 0,
+        "problems": [
+          "container churn-api waiting: ImagePullBackOff"
+        ]
+      },
+      {
+        "name": "churn-api-5f695864cd-768c4",
+        "phase": "Running",
+        "ready": true,
+        "restarts": 0,
+        "problems": []
+      },
+      {
+        "name": "churn-api-5f695864cd-jx72b",
+        "phase": "Running",
+        "ready": true,
+        "restarts": 0,
+        "problems": []
+      }
+    ],
+    "findings": [
+      {
+        "layer": "deployment",
+        "issue": "image pull failure: the container image cannot be pulled (wrong tag/registry/auth)",
+        "image": "churn-api:1.1.0",
+        "evidence": [
+          "pod churn-api-546d8797bf-7lwbg container churn-api: ImagePullBackOff - Back-off pulling image \"churn-api:1.1.0\": ErrImagePull: failed to pull and unpack image \"docker.io/library/churn-api:1.1.0\": failed to resolve reference \"docker.io/library/churn-api:1.1.0\": pull access denied, repository does not exist or may require authorization: server message: insufficient_scope",
+          "event Failed: Error: ImagePullBackOff",
+          "event Failed: Failed to pull image \"churn-api:1.1.0\": failed to pull and unpack image \"docker.io/library/churn-api:1.1.0\": failed to resolve reference \"docker.io/library/churn-api:1.1.0\": pull access denied, repository does not exist or may require authorization: server message: insufficient_scope: authorization ",
+          "event Failed: Error: ErrImagePull"
+        ],
+        "action": "fix the image reference or roll back to the last working revision"
+      }
+    ],
+    "recent_warning_events": [
+      {
+        "type": "Warning",
+        "reason": "Failed",
+        "object": "Pod/churn-api-546d8797bf-7lwbg",
+        "message": "Error: ImagePullBackOff",
+        "count": 2,
+        "last_seen": "2026-11-15T11:33:39Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Failed",
+        "object": "Pod/churn-api-546d8797bf-7lwbg",
+        "message": "Failed to pull image \"churn-api:1.1.0\": failed to pull and unpack image \"docker.io/library/churn-api:1.1.0\": failed to resolve reference \"docker.io/library/churn-api:1.1.0\": pull access denied, repository does not exist or may require authorization: server message: insufficient_scope: authorization ",
+        "count": 2,
+        "last_seen": "2026-11-15T11:33:29Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Failed",
+        "object": "Pod/churn-api-546d8797bf-7lwbg",
+        "message": "Error: ErrImagePull",
+        "count": 2,
+        "last_seen": "2026-11-15T11:33:29Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-crfc7",
+        "message": "Readiness probe failed: HTTP probe failed with statuscode: 503",
+        "count": 12,
+        "last_seen": "2026-11-15T11:33:11Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5f695864cd-768c4",
+        "message": "Startup probe failed: Get \"http://10.244.0.10:8000/health/live\": dial tcp 10.244.0.10:8000: connect: connection refused",
+        "count": 2,
+        "last_seen": "2026-11-15T11:33:08Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-w995t",
+        "message": "Readiness probe failed: HTTP probe failed with statuscode: 503",
+        "count": 11,
+        "last_seen": "2026-11-15T11:33:04Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5f695864cd-jx72b",
+        "message": "Startup probe failed: Get \"http://10.244.0.9:8000/health/live\": dial tcp 10.244.0.9:8000: connect: connection refused",
+        "count": 2,
+        "last_seen": "2026-11-15T11:33:02Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-crfc7",
+        "message": "Startup probe failed: Get \"http://10.244.0.8:8000/health/live\": dial tcp 10.244.0.8:8000: connect: connection refused",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:21Z"
+      }
+    ]
+  },
+  "error": null,
+  "evidence_source": [
+    "GET services/churn-api",
+    "GET endpointslices",
+    "GET pods?labelSelector=app.kubernetes.io/name=churn-api",
+    "GET services/proxy/health/ready",
+    "GET deployments",
+    "GET events (warnings)"
+  ]
+}

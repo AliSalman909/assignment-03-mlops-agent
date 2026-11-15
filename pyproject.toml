@@ -23,6 +23,8 @@ dependencies = [
     "mlflow-skinny==3.18.0",
     "skops==0.16.0",
     "joblib>=1.3",
+    "kubernetes==37.0.1",
+    "python-dateutil>=2.8,<3",
 ]
 
 [project.optional-dependencies]
@@ -32,7 +34,7 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["agent*", "api*", "training*"]
+include = ["agent*", "api*", "training*", "serving*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

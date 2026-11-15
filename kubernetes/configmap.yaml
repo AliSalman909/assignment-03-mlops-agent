@@ -1,0 +1,17 @@
+# Non-sensitive runtime configuration for the prediction API. Secrets never go here.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: churn-api-config
+  namespace: mlops
+  labels:
+    app.kubernetes.io/name: churn-api
+    app.kubernetes.io/part-of: mlops-agent
+data:
+  APP_ENV: "demo"
+  LOG_LEVEL: "INFO"
+  MODEL_DIR: "/app/model"
+  # empty = use the decision threshold recorded with the model in MLflow
+  DECISION_THRESHOLD: ""
+  # seconds of artificial warm-up before the model loads (startup-probe demo)
+  STARTUP_DELAY_S: "0"

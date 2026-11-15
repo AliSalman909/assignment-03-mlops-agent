@@ -1,0 +1,48 @@
+{
+  "tool": "inspect_service",
+  "status": "ok",
+  "request_id": "ab09e310873f",
+  "duration_ms": 1000.43,
+  "data": {
+    "namespace": "mlops",
+    "name": "churn-api",
+    "type": "ClusterIP",
+    "cluster_ip": "10.96.80.132",
+    "ports": [
+      {
+        "name": "http",
+        "protocol": "TCP",
+        "port": 80,
+        "targetPort": "http"
+      }
+    ],
+    "selector": {
+      "app.kubernetes.io/name": "churn-api"
+    },
+    "matching_pods": 2,
+    "ready_pods": 2,
+    "endpoints": {
+      "ready": [
+        "churn-api-5c86448b45-bpfwp",
+        "churn-api-5c86448b45-njwfm"
+      ],
+      "not_ready": []
+    },
+    "health_check": {
+      "path": "/health/ready",
+      "ok": true,
+      "response": {
+        "status": "ready",
+        "model_version": "1"
+      }
+    },
+    "serving": true
+  },
+  "error": null,
+  "evidence_source": [
+    "GET services/churn-api",
+    "GET endpointslices",
+    "GET pods?labelSelector=app.kubernetes.io/name=churn-api",
+    "GET services/proxy/health/ready"
+  ]
+}

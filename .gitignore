@@ -33,3 +33,9 @@ kubeconfig*
 .idea/
 .DS_Store
 Thumbs.db
+
+# Model exported into the serving image at build time (serving/export_model.py)
+/serving/model/
+
+# Agent credentials (restricted kubeconfig etc.)
+/.secrets/

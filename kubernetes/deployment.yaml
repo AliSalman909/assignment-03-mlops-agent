@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: churn-api
+  namespace: mlops
+  labels:
+    app.kubernetes.io/name: churn-api
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/part-of: mlops-agent
+  annotations:
+    kubernetes.io/change-cause: "deploy churn-api 1.0.0 serving churn-classifier v1 (champion)"
+    # model lineage - read by the agent's get_deployed_version tool
+    mlops.io/model-name: churn-classifier
+    mlops.io/model-version: "1"
+    mlops.io/model-alias: champion
+    mlops.io/dataset-version: v1.1
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: churn-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0   # never drop below desired capacity during a rollout
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: churn-api
+        app.kubernetes.io/version: "1.0.0"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      containers:
+        - name: churn-api
+          image: churn-api:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: APP_VERSION
+              value: "1.0.0"
+            - name: HOME
+              value: /tmp
+          envFrom:
+            - configMapRef:
+                name: churn-api-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          # startup probe gives model loading time before liveness kicks in
+          startupProbe:
+            httpGet: { path: /health/live, port: http }
+            periodSeconds: 2
+            failureThreshold: 30
+          # readiness = model loaded; failing pods are removed from the Service endpoints
+          readinessProbe:
+            httpGet: { path: /health/ready, port: http }
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+          # liveness = process responsive; failing containers are restarted
+          livenessProbe:
+            httpGet: { path: /health/live, port: http }
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]

@@ -1,0 +1,133 @@
+{
+  "tool": "diagnose_service",
+  "status": "ok",
+  "request_id": "3338d5a728ac",
+  "duration_ms": 1229.13,
+  "data": {
+    "namespace": "mlops",
+    "service": "churn-api",
+    "status": "available",
+    "summary": "service is healthy: 2 ready endpoint(s), readiness check passed",
+    "ready_endpoints": [
+      "churn-api-5f695864cd-jx72b",
+      "churn-api-5f695864cd-768c4"
+    ],
+    "not_ready_endpoints": [],
+    "health_check": {
+      "path": "/health/ready",
+      "ok": true,
+      "response": {
+        "status": "ready",
+        "model_version": "1"
+      }
+    },
+    "deployments": [
+      {
+        "name": "churn-api",
+        "desired_replicas": 2,
+        "ready_replicas": 2,
+        "updated_replicas": 2,
+        "available_replicas": 2,
+        "unavailable_replicas": 0,
+        "images": [
+          "churn-api:1.0.0"
+        ],
+        "revision": "2",
+        "rollout": "complete",
+        "available": true
+      }
+    ],
+    "pods": [
+      {
+        "name": "churn-api-5f695864cd-768c4",
+        "phase": "Running",
+        "ready": true,
+        "restarts": 0,
+        "problems": []
+      },
+      {
+        "name": "churn-api-5f695864cd-jx72b",
+        "phase": "Running",
+        "ready": true,
+        "restarts": 0,
+        "problems": []
+      }
+    ],
+    "findings": [],
+    "recent_warning_events": [
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-crfc7",
+        "message": "Readiness probe failed: HTTP probe failed with statuscode: 503",
+        "count": 12,
+        "last_seen": "2026-11-15T11:33:11Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5f695864cd-768c4",
+        "message": "Startup probe failed: Get \"http://10.244.0.10:8000/health/live\": dial tcp 10.244.0.10:8000: connect: connection refused",
+        "count": 2,
+        "last_seen": "2026-11-15T11:33:08Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-w995t",
+        "message": "Readiness probe failed: HTTP probe failed with statuscode: 503",
+        "count": 11,
+        "last_seen": "2026-11-15T11:33:04Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5f695864cd-jx72b",
+        "message": "Startup probe failed: Get \"http://10.244.0.9:8000/health/live\": dial tcp 10.244.0.9:8000: connect: connection refused",
+        "count": 2,
+        "last_seen": "2026-11-15T11:33:02Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-crfc7",
+        "message": "Startup probe failed: Get \"http://10.244.0.8:8000/health/live\": dial tcp 10.244.0.8:8000: connect: connection refused",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:21Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-w995t",
+        "message": "Startup probe failed: Get \"http://10.244.0.7:8000/health/live\": dial tcp 10.244.0.7:8000: connect: connection refused",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:21Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-bpfwp",
+        "message": "Readiness probe failed: Get \"http://10.244.0.5:8000/health/ready\": dial tcp 10.244.0.5:8000: connect: connection refused",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:20Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-njwfm",
+        "message": "Readiness probe failed: Get \"http://10.244.0.6:8000/health/ready\": dial tcp 10.244.0.6:8000: connect: connection refused",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:20Z"
+      }
+    ]
+  },
+  "error": null,
+  "evidence_source": [
+    "GET services/churn-api",
+    "GET endpointslices",
+    "GET pods?labelSelector=app.kubernetes.io/name=churn-api",
+    "GET services/proxy/health/ready",
+    "GET deployments",
+    "GET events (warnings)"
+  ]
+}

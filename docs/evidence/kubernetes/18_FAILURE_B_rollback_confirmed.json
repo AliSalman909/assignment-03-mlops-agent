@@ -1,0 +1,20 @@
+{
+  "tool": "rollback_deployment",
+  "status": "ok",
+  "request_id": "c064f653ee10",
+  "duration_ms": 981.74,
+  "data": {
+    "namespace": "mlops",
+    "deployment": "churn-api",
+    "from_revision": 3,
+    "to_revision": 2,
+    "restored_images": [
+      "churn-api:1.0.0"
+    ]
+  },
+  "error": null,
+  "evidence_source": [
+    "GET replicasets (owner churn-api)",
+    "PATCH deployments/churn-api"
+  ]
+}

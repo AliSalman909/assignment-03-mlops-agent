@@ -1,0 +1,80 @@
+{
+  "tool": "get_events",
+  "status": "ok",
+  "request_id": "024a9d606eb9",
+  "duration_ms": 1011.05,
+  "data": {
+    "namespace": "mlops",
+    "count": 8,
+    "events": [
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-crfc7",
+        "message": "Readiness probe failed: HTTP probe failed with statuscode: 503",
+        "count": 8,
+        "last_seen": "2026-11-15T11:32:53Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-w995t",
+        "message": "Readiness probe failed: HTTP probe failed with statuscode: 503",
+        "count": 8,
+        "last_seen": "2026-11-15T11:32:53Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-crfc7",
+        "message": "Startup probe failed: Get \"http://10.244.0.8:8000/health/live\": dial tcp 10.244.0.8:8000: connect: connection refused",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:21Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-w995t",
+        "message": "Startup probe failed: Get \"http://10.244.0.7:8000/health/live\": dial tcp 10.244.0.7:8000: connect: connection refused",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:21Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-bpfwp",
+        "message": "Readiness probe failed: Get \"http://10.244.0.5:8000/health/ready\": dial tcp 10.244.0.5:8000: connect: connection refused",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:20Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-njwfm",
+        "message": "Readiness probe failed: Get \"http://10.244.0.6:8000/health/ready\": dial tcp 10.244.0.6:8000: connect: connection refused",
+        "count": 1,
+        "last_seen": "2026-11-15T11:32:20Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-bpfwp",
+        "message": "Startup probe failed: Get \"http://10.244.0.5:8000/health/live\": dial tcp 10.244.0.5:8000: connect: connection refused",
+        "count": 7,
+        "last_seen": "2026-11-15T11:28:03Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-njwfm",
+        "message": "Startup probe failed: Get \"http://10.244.0.6:8000/health/live\": dial tcp 10.244.0.6:8000: connect: connection refused",
+        "count": 7,
+        "last_seen": "2026-11-15T11:28:03Z"
+      }
+    ]
+  },
+  "error": null,
+  "evidence_source": [
+    "GET events (ns=mlops, object=None)"
+  ]
+}

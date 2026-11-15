@@ -47,6 +47,22 @@ class Settings:
         )
     )
 
+    # Kubernetes
+    k8s_kubeconfig: str | None = field(default_factory=lambda: os.environ.get("K8S_KUBECONFIG") or None)
+    k8s_context: str | None = field(default_factory=lambda: os.environ.get("K8S_CONTEXT") or None)
+    k8s_default_namespace: str = field(default_factory=lambda: _env("K8S_NAMESPACE", "mlops"))
+    k8s_approved_namespaces: tuple[str, ...] = field(
+        default_factory=lambda: tuple(
+            n.strip() for n in _env("K8S_APPROVED_NAMESPACES", "mlops").split(",") if n.strip()
+        )
+    )
+    # only Deployments carrying this label may be modified (restart/scale/rollback)
+    k8s_managed_label: str = field(
+        default_factory=lambda: _env("K8S_MANAGED_LABEL", "app.kubernetes.io/part-of=mlops-agent")
+    )
+    k8s_timeout_s: float = field(default_factory=lambda: float(_env("K8S_TIMEOUT_S", "10")))
+    k8s_max_replicas: int = field(default_factory=lambda: int(_env("K8S_MAX_REPLICAS", "5")))
+
     # LLM (Gemini). The key is only ever read from the environment / .env and never logged.
     gemini_model: str = field(default_factory=lambda: _env("GEMINI_MODEL", "gemini-flash-lite-latest"))
     gemini_api_key: str | None = field(default_factory=lambda: os.environ.get("GEMINI_API_KEY"), repr=False)

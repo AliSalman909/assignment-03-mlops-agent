@@ -1,0 +1,85 @@
+{
+  "tool": "diagnose_service",
+  "status": "ok",
+  "request_id": "08146e9281e8",
+  "duration_ms": 995.59,
+  "data": {
+    "namespace": "mlops",
+    "service": "churn-api",
+    "status": "available",
+    "summary": "service is healthy: 2 ready endpoint(s), readiness check passed",
+    "ready_endpoints": [
+      "churn-api-5c86448b45-bpfwp",
+      "churn-api-5c86448b45-njwfm"
+    ],
+    "not_ready_endpoints": [],
+    "health_check": {
+      "path": "/health/ready",
+      "ok": true,
+      "response": {
+        "status": "ready",
+        "model_version": "1"
+      }
+    },
+    "deployments": [
+      {
+        "name": "churn-api",
+        "desired_replicas": 2,
+        "ready_replicas": 2,
+        "updated_replicas": 2,
+        "available_replicas": 2,
+        "unavailable_replicas": 0,
+        "images": [
+          "churn-api:1.0.0"
+        ],
+        "revision": "1",
+        "rollout": "complete",
+        "available": true
+      }
+    ],
+    "pods": [
+      {
+        "name": "churn-api-5c86448b45-bpfwp",
+        "phase": "Running",
+        "ready": true,
+        "restarts": 0,
+        "problems": []
+      },
+      {
+        "name": "churn-api-5c86448b45-njwfm",
+        "phase": "Running",
+        "ready": true,
+        "restarts": 0,
+        "problems": []
+      }
+    ],
+    "findings": [],
+    "recent_warning_events": [
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-bpfwp",
+        "message": "Startup probe failed: Get \"http://10.244.0.5:8000/health/live\": dial tcp 10.244.0.5:8000: connect: connection refused",
+        "count": 7,
+        "last_seen": "2026-11-15T11:28:03Z"
+      },
+      {
+        "type": "Warning",
+        "reason": "Unhealthy",
+        "object": "Pod/churn-api-5c86448b45-njwfm",
+        "message": "Startup probe failed: Get \"http://10.244.0.6:8000/health/live\": dial tcp 10.244.0.6:8000: connect: connection refused",
+        "count": 7,
+        "last_seen": "2026-11-15T11:28:03Z"
+      }
+    ]
+  },
+  "error": null,
+  "evidence_source": [
+    "GET services/churn-api",
+    "GET endpointslices",
+    "GET pods?labelSelector=app.kubernetes.io/name=churn-api",
+    "GET services/proxy/health/ready",
+    "GET deployments",
+    "GET events (warnings)"
+  ]
+}
