@@ -1,10 +1,10 @@
 {
-  "raw_rows": 4040,
-  "duplicates_removed": 40,
-  "train_rows": 3200,
-  "test_rows": 800,
+  "raw_rows": 6060,
+  "duplicates_removed": 60,
+  "train_rows": 4800,
+  "test_rows": 1200,
   "n_features": 12,
-  "positive_rate": 0.2665,
+  "positive_rate": 0.2662,
   "columns": [
     "customer_id",
     "tenure_months",
