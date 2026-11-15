@@ -14,8 +14,8 @@ htmlcov/
 *.kubeconfig
 kubeconfig*
 
-# DVC: local remote storage used for the demo (would be S3/GCS/Azure in production)
-/.dvcstore/
+# DVC: the demo remote (.dvcstore/, ~1.4 MB) IS committed so a fresh clone can `dvc pull`.
+# In production the remote would be S3/GCS/Azure and nothing data-related would be in git.
 
 # Agent outputs
 /artifacts/

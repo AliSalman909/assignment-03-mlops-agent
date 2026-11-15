@@ -1,2 +1,4 @@
 * text=auto eol=lf
 *.png binary
+# DVC objects are content-addressed by md5: git must never rewrite their bytes
+.dvcstore/** binary
