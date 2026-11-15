@@ -33,7 +33,7 @@ flowchart TD
 | Data versioning | DVC 3 + git tags `data-v1.0/v1.1/v2.0`, local remote | `dvc.yaml`, `data/raw/churn.csv.dvc` |
 | Experiments | MLflow 3.18 (Docker), experiments `churn-baseline`, `churn-training-pipeline`, registry `churn-classifier` | `docker-compose.yml`, `scripts/seed_experiments.py` |
 | Orchestration | Airflow 3.4 standalone (Docker), DAG `churn_training_pipeline` | `dags/training_pipeline.py` |
-| Serving | FastAPI inference service on Kubernetes (kind), 2 replicas | `serving/`, `kubernetes/` |
+| Serving | FastAPI inference service on Kubernetes (kind), 2 replicas | `Dockerfile`, `serving/`, `kubernetes/` |
 
 ## 2. Request flow (mandatory integration scenario)
 

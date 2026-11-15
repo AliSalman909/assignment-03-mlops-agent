@@ -10,7 +10,7 @@ CLUSTER="${KIND_CLUSTER:-mlops}"
 K="kubectl --context kind-$CLUSTER"
 
 MLFLOW_DISABLE_AGENT_HINT=1 python serving/export_model.py --alias "${MODEL_ALIAS:-champion}"
-docker build -t "churn-api:$TAG" serving/
+docker build -t "churn-api:$TAG" .
 kind load docker-image "churn-api:$TAG" --name "$CLUSTER"
 $K apply -f kubernetes/namespace.yaml
 $K apply -f kubernetes/configmap.yaml -f kubernetes/deployment.yaml -f kubernetes/service.yaml -f kubernetes/agent-rbac.yaml

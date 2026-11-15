@@ -5,9 +5,29 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint-and-test:
+    name: lint + tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+    # External services are mocked in the test suite. These deliberately unreachable endpoints make any
+    # accidental real call fail fast instead of silently depending on infrastructure.
+    env:
+      DVC_NO_ANALYTICS: "1"
+      MLFLOW_TRACKING_URI: "http://127.0.0.1:9"
+      AIRFLOW_BASE_URL: "http://127.0.0.1:9"
+      K8S_KUBECONFIG: "/nonexistent/kubeconfig"
+      GEMINI_API_KEY: ""
     steps:
       - uses: actions/checkout@v4
         with:
@@ -15,13 +35,15 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
           cache: pip
+          cache-dependency-path: pyproject.toml
 
-      - name: Install
+      - name: Install (reproducible environment from pyproject.toml)
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
+          pip check
 
       - name: Configure git identity for test fixtures
         run: |
@@ -31,7 +53,24 @@ jobs:
       - name: Lint
         run: ruff check .
 
-      - name: Tests (external services mocked)
-        env:
-          DVC_NO_ANALYTICS: "1"
+      - name: Format check
+        run: ruff format --check .
+
+      - name: Tests (DVC on a temporary repo; MLflow, Airflow, Kubernetes and Gemini mocked)
         run: pytest -q
+
+  config-validation:
+    name: validate compose + Kubernetes manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: docker compose config
+        env:
+          AIRFLOW_ADMIN_PASSWORD: ci-placeholder
+        run: docker compose config --quiet
+
+      - name: Kubernetes manifests (kubeconform, strict schema validation)
+        run: |
+          curl -sSL https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz | tar xz
+          ./kubeconform -strict -summary -ignore-filename-pattern 'kind-cluster' kubernetes/

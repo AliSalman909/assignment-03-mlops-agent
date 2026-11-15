@@ -124,7 +124,10 @@ agent/
     airflow_tools.py   Task 3 (Airflow 3 REST API v2, JWT auth)
     kubernetes_tools.py Task 4 (official Python client, namespace allow-list, RBAC)
 dags/training_pipeline.py     Airflow training DAG
-serving/                      FastAPI inference service (app.py, Dockerfile, export_model.py)
+Dockerfile                    inference service image (FastAPI app in serving/, built from the repo root)
+serving/                      FastAPI inference service (app.py, export_model.py, requirements.txt)
+screenshots/                  report screenshots (checklist in screenshots/README.md)
+start.py                      one-command setup + launcher
 kubernetes/                   namespace, configmap, deployment, service, agent-rbac, kind-cluster
 docker/airflow/               Airflow 3.4 image (+ scikit-learn, mlflow-skinny, skops)
 docker-compose.yml            MLflow 3.18 server + Airflow 3.4

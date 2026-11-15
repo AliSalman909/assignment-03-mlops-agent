@@ -258,7 +258,7 @@ def setup_kubernetes(tools: dict[str, str]) -> None:
             quiet=True,
             env={"MLFLOW_DISABLE_AGENT_HINT": "1"},
         )
-        run([docker, "build", "-q", "-t", IMAGE, "serving/"], quiet=True)
+        run([docker, "build", "-q", "-t", IMAGE, "."], quiet=True)
         run([kind, "load", "docker-image", IMAGE, "--name", CLUSTER], quiet=True)
         run(k + ["apply", "-f", "kubernetes/namespace.yaml"], quiet=True)
         run(

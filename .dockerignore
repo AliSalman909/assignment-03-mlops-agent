@@ -1,2 +1,9 @@
+# Docker builds use the repository root as context. Allow-list only what images need, so the venv,
+# data, .env and .secrets/ can never end up in an image.
 *
+# Airflow image (docker/airflow/Dockerfile)
 !docker/
+# Inference service image (Dockerfile)
+!serving/app.py
+!serving/requirements.txt
+!serving/model/
