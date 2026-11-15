@@ -193,7 +193,13 @@ def churn_training_pipeline():
         try:
             champ = client.get_model_version_by_alias(REGISTERED_MODEL_NAME, "champion")
             champion_f1 = client.get_run(champ.run_id).data.metrics.get("f1")
-        except MlflowException:
+        except MlflowException as exc:
+            # Only "there is no champion yet" may skip the regression check. Any other MLflow error (server
+            # down, permissions) must fail this attempt so it retries - never silently relax the gate.
+            # (verified against MLflow 3.18: unknown model -> RESOURCE_DOES_NOT_EXIST,
+            #  existing model without the alias -> INVALID_PARAMETER_VALUE)
+            if exc.error_code not in ("RESOURCE_DOES_NOT_EXIST", "INVALID_PARAMETER_VALUE"):
+                raise
             log.info("no champion model registered yet - absolute thresholds only")
 
         decision = gate_decision(logged["metrics"], champion_f1, gate)

@@ -203,3 +203,12 @@ def test_structured_log_has_required_fields_and_no_secrets(caplog):
     assert f["tool"] == "list_datasets" and f["status"] == "error" and f["request_id"] == "req-123"
     assert isinstance(f["duration_ms"], float)
     assert "hunter2" not in str(f) and "abc.def.ghi" not in str(f)
+
+
+def test_broken_repository_is_unavailable_not_a_false_negative(tmp_path):
+    # a directory that is not a git repository must not produce "revision does not exist"
+    registry = ToolRegistry()
+    settings = Settings(repo_root=tmp_path, default_dataset="data/ds.csv")
+    register_dvc_tools(registry, DVCTools(settings=settings, runner=SafeCommandRunner(tmp_path, 30)))
+    res = registry.execute("get_dataset_version", {"git_commit": "HEAD"})
+    assert res.status == ToolStatus.UNAVAILABLE and res.data is None

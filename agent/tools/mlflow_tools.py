@@ -247,13 +247,14 @@ class MLflowTools:
             "provenance": _provenance(tags),
         }
 
-    def _versions_for_runs(self) -> dict[str, list[dict[str, Any]]]:
-        """run_id -> registered model versions (with aliases) created from that run."""
+    def _versions_for_runs(self) -> dict[str, list[dict[str, Any]]] | None:
+        """run_id -> registered model versions (with aliases) created from that run.
+        None means the registry could not be read (unknown), which is different from "not registered"."""
         out: dict[str, list[dict[str, Any]]] = {}
         try:
             models = self._call(self.client.search_registered_models)
         except ToolInvalidRequestError:
-            return out
+            return None
         for m in models:
             aliases_by_version: dict[str, list[str]] = {}
             for alias, ver in (getattr(m, "aliases", None) or {}).items():
@@ -306,8 +307,10 @@ class MLflowTools:
             blockers.append("this run FAILED the automated quality gate")
         elif gate != "passed":
             findings.append("no automated quality-gate result recorded for this run")
-        regs = versions.get(best["run_id"], [])
-        if not regs:
+        regs = versions.get(best["run_id"], []) if versions is not None else []
+        if versions is None:
+            findings.append("registry status UNKNOWN - the model registry could not be read")
+        elif not regs:
             findings.append("not registered in the model registry")
         if best["status"] != "FINISHED":
             blockers.append(f"run status is {best['status']}")
@@ -340,7 +343,7 @@ class MLflowTools:
                     "experiment_id": e.experiment_id,
                     "name": e.name,
                     "lifecycle_stage": e.lifecycle_stage,
-                    "num_runs": len(runs),
+                    "num_runs": len(runs) if len(runs) < 1000 else "1000+",
                     "last_update_time": _ts(getattr(e, "last_update_time", None)),
                 }
             )
@@ -390,7 +393,7 @@ class MLflowTools:
                 "tags": tags,
                 "artifacts": artifacts,
                 "logged_models": logged_models,
-                "registered_versions": self._versions_for_runs().get(p.run_id, []),
+                "registered_versions": (self._versions_for_runs() or {}).get(p.run_id, []),
             },
             evidence_source=[
                 "MlflowClient.get_run",

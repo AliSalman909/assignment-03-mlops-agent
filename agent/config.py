@@ -65,6 +65,9 @@ class Settings:
 
     # LLM (Gemini). The key is only ever read from the environment / .env and never logged.
     gemini_model: str = field(default_factory=lambda: _env("GEMINI_MODEL", "gemini-flash-lite-latest"))
+    # "*-latest" aliases are only served on v1beta; pinned models (e.g. gemini-2.5-flash-lite) also work on v1
+    gemini_api_version: str = field(default_factory=lambda: _env("GEMINI_API_VERSION", "v1beta"))
+    gemini_temperature: float = field(default_factory=lambda: float(_env("GEMINI_TEMPERATURE", "0.1")))
     gemini_api_key: str | None = field(default_factory=lambda: os.environ.get("GEMINI_API_KEY"), repr=False)
     llm_timeout_s: float = field(default_factory=lambda: float(_env("LLM_TIMEOUT_S", "90")))
 

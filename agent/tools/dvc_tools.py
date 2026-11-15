@@ -62,8 +62,17 @@ class CommandFailedError(ToolError):
     """An approved command ran and exited non-zero (e.g. unknown revision, missing file).
 
     Kept distinct from timeouts/unavailability so callers that tolerate "not found" never
-    mask an infrastructure failure as a negative answer.
+    mask an infrastructure failure as a negative answer. `returncode`/`stderr` let callers tell a
+    genuine "not found" apart from e.g. "not a git repository".
     """
+
+    def __init__(self, message: str, returncode: int = 1, stderr: str = "") -> None:
+        super().__init__(message)
+        self.returncode = returncode
+        self.stderr = stderr
+
+
+_NOT_FOUND_MARKERS = ("does not exist", "exists on disk, but not in", "unknown revision", "bad revision")
 
 
 # ---------------------------------------------------------------------------
@@ -167,7 +176,11 @@ class SafeCommandRunner:
         if proc.returncode != 0:
             msg = (proc.stderr or proc.stdout).strip().splitlines()
             tail = " | ".join(msg[-3:]) if msg else f"exit code {proc.returncode}"
-            raise CommandFailedError(redact(f"'{binary} {' '.join(args[:2])}' failed: {tail}"))
+            raise CommandFailedError(
+                redact(f"'{binary} {' '.join(args[:2])}' failed: {tail}"),
+                returncode=proc.returncode,
+                stderr=redact((proc.stderr or "")[-500:]),
+            )
         return proc.stdout
 
 
@@ -272,7 +285,11 @@ class DVCTools:
         try:
             return self._git("rev-parse", "--verify", "--quiet", f"{rev}^{{commit}}").strip()
         except CommandFailedError as exc:
-            raise ToolInvalidRequestError(f"git revision '{rev}' does not exist in this repository") from exc
+            # `rev-parse --verify --quiet` exits 1 silently for an unknown revision; anything else (e.g. 128
+            # "not a git repository") is an infrastructure problem and must not become a negative answer
+            if exc.returncode == 1 and not exc.stderr.strip():
+                raise ToolInvalidRequestError(f"git revision '{rev}' does not exist in this repository") from exc
+            raise ToolUnavailableError(f"git repository is not usable: {exc}") from exc
 
     def _commit_info(self, sha: str) -> dict[str, str]:
         out = self._git("log", "-1", "--format=%H%x1f%h%x1f%cI%x1f%s", sha).strip()
@@ -282,8 +299,10 @@ class DVCTools:
     def _show(self, sha: str, repo_path: str) -> str | None:
         try:
             return self._git("show", f"{sha}:{repo_path}")
-        except CommandFailedError:
-            return None
+        except CommandFailedError as exc:
+            if any(m in exc.stderr for m in _NOT_FOUND_MARKERS):
+                return None  # the file genuinely isn't in that commit
+            raise ToolUnavailableError(f"could not read {repo_path} at {sha[:8]}: {exc}") from exc
 
     def _tracking_record(self, path: str, sha: str) -> dict[str, Any]:
         """Return DVC's recorded hash for `path` at commit `sha` from a .dvc file or dvc.lock."""

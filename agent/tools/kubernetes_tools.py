@@ -31,7 +31,7 @@ from typing import Any
 from pydantic import BaseModel, Field, field_validator
 
 from agent.config import Settings, get_settings
-from agent.logging_utils import redact
+from agent.logging_utils import get_logger, log_event, redact
 from agent.tools.base import (
     Tool,
     ToolError,
@@ -44,6 +44,7 @@ from agent.tools.base import (
 )
 
 MODULE = "kubernetes"
+logger = get_logger("kubernetes")
 _DNS_RE = re.compile(r"^[a-z0-9]([-a-z0-9.]{0,251}[a-z0-9])?$")
 _SELECTOR_RE = re.compile(r"^[A-Za-z0-9_./\-=!,() ]{1,200}$")
 BAD_WAITING = {
@@ -270,6 +271,13 @@ class KubernetesTools:
                     api = client.ApiClient()
                 except config.ConfigException:
                     api = config.new_client_from_config(context=self.settings.k8s_context)
+                    log_event(
+                        logger,
+                        "k8s_credentials_warning",
+                        level=30,
+                        detail="K8S_KUBECONFIG not set: using the default kubeconfig, which is often cluster-admin. "
+                        "Run scripts/k8s_agent_kubeconfig.sh and set K8S_KUBECONFIG for the restricted agent identity.",
+                    )
         except Exception as exc:  # noqa: BLE001
             raise ToolUnavailableError(f"no usable Kubernetes configuration: {type(exc).__name__}") from exc
         self._core = client.CoreV1Api(api)
@@ -694,7 +702,11 @@ class KubernetesTools:
                     config = {}
                     for cm in cm_refs:
                         try:
-                            config[cm] = self._call(self.core.read_namespaced_config_map, cm, ns).get("data", {})
+                            # ConfigMaps should hold no secrets; redact sensitive-looking keys before they
+                            # reach the LLM or the API response, in case someone put one there
+                            config[cm] = redact(
+                                self._call(self.core.read_namespaced_config_map, cm, ns).get("data", {})
+                            )
                             sources.append(f"GET configmaps/{cm}")
                         except ToolError:
                             config[cm] = "unreadable"
@@ -840,12 +852,17 @@ class KubernetesTools:
         template = owned[target]["spec"]["template"]
         template.get("metadata", {}).get("labels", {}).pop("pod-template-hash", None)
         images = [c.get("image") for c in template["spec"]["containers"]]
-        body = {
-            "metadata": {
-                "annotations": {"kubernetes.io/change-cause": f"rollback to revision {target} by MLOps agent"}
+        # JSON patch (a list body) REPLACES the whole pod template, like `kubectl rollout undo`. A dict body would be
+        # sent as a strategic-merge patch, which merges containers/env by name and would keep anything the bad
+        # revision added.
+        body = [
+            {"op": "replace", "path": "/spec/template", "value": template},
+            {
+                "op": "add",  # JSON-pointer escaping: "/" in the annotation key becomes "~1"
+                "path": "/metadata/annotations/kubernetes.io~1change-cause",
+                "value": f"rollback to revision {target} by MLOps agent",
             },
-            "spec": {"template": template},
-        }
+        ]
         self._call(self.apps.patch_namespaced_deployment, p.deployment_name, ns, body)
         return ToolOutput(
             data={

@@ -86,9 +86,12 @@ class GeminiClient:
         self._types = types
         self._client = genai.Client(
             api_key=self.settings.gemini_api_key,
-            http_options=types.HttpOptions(api_version="v1beta", timeout=int(self.settings.llm_timeout_s * 1000)),
+            http_options=types.HttpOptions(
+                api_version=self.settings.gemini_api_version, timeout=int(self.settings.llm_timeout_s * 1000)
+            ),
         )
         self.model_name = self.settings.gemini_model
+        self.last_model_version: str | None = None  # concrete model behind an alias, e.g. *-latest
         self._tool_cache: dict[tuple[str, ...], Any] = {}
 
     def _tools(self, specs: list[ToolSpec]):
@@ -134,7 +137,7 @@ class GeminiClient:
         t = self._types
         config = t.GenerateContentConfig(
             system_instruction=system,
-            temperature=0.1,
+            temperature=self.settings.gemini_temperature,
             tools=self._tools(tools) if tools else None,
             automatic_function_calling=t.AutomaticFunctionCallingConfig(disable=True),
         )
@@ -176,4 +179,5 @@ class GeminiClient:
             prompt_tokens=getattr(usage, "prompt_token_count", None),
             output_tokens=getattr(usage, "candidates_token_count", None),
         )
+        self.last_model_version = getattr(resp, "model_version", None) or self.last_model_version
         return LLMTurn(text=text or None, calls=calls, raw=content)

@@ -208,3 +208,33 @@ def test_api_query_confirm_and_validation(registry, monkeypatch):
         assert c.json()["tool_calls"][0]["status"] == "ok"
     finally:
         api_main.app.dependency_overrides.clear()
+
+
+def test_keyword_matching_uses_word_starts():
+    assert required_modules("Is the rapid capital plan ok?") == set()  # 'api' inside words must not match
+    assert required_modules("Why is my prediction API unavailable?") == {"kubernetes"}
+    assert "kubernetes" in required_modules("check the deployments")  # prefix match still works
+
+
+def test_action_requests_skip_the_coverage_nudge(registry):
+    agent, llm = make_agent(registry, [calls(("trigger_training_pipeline", {})), answer("awaiting confirmation")])
+    resp = agent.run("Trigger the model training pipeline")  # mentions 'model' (mlflow) but is an action request
+    assert resp.steps == 2 and not any("orchestrator check" in str(m) for m in llm.seen[-1])
+
+
+def test_log_redaction_keeps_token_counts_but_masks_secrets():
+    from agent.logging_utils import redact
+
+    out = redact(
+        {
+            "prompt_tokens": 1200,
+            "output_tokens": 80,
+            "access_token": "abc",
+            "AIRFLOW_ADMIN_PASSWORD": "pw",
+            "x-api-key": "k",
+            "note": "password=hunter2 and AIzaSyA1234567890123456789012345678901",
+        }
+    )
+    assert out["prompt_tokens"] == 1200 and out["output_tokens"] == 80
+    assert {out["access_token"], out["AIRFLOW_ADMIN_PASSWORD"], out["x-api-key"]} == {"***REDACTED***"}
+    assert "hunter2" not in out["note"] and "AIzaSy" not in out["note"]

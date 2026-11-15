@@ -112,7 +112,7 @@ class FakeCluster:
         return {"items": [self.read_namespaced_service("churn-api", ns)]}
 
     def read_namespaced_config_map(self, name, ns, **kw):
-        return {"data": {"MODEL_DIR": "/app/models/churn-v2", "LOG_LEVEL": "INFO"}}
+        return {"data": {"MODEL_DIR": "/app/models/churn-v2", "LOG_LEVEL": "INFO", "DB_PASSWORD": "s3cret-pw"}}
 
     def connect_get_namespaced_service_proxy_with_path(self, name, ns, path, **kw):
         if not self.health_ok:
@@ -229,6 +229,8 @@ def test_diagnose_unavailable_api_from_model_load_failure():
     assert f["layer"] == "application" and "model failed to load" in f["issue"]
     assert any("MODEL_LOAD_FAILED" in e for e in f["evidence"])
     assert f["config_in_use"]["churn-api-config"]["MODEL_DIR"] == "/app/models/churn-v2"
+    assert "s3cret-pw" not in str(res.data)  # sensitive-looking ConfigMap values never reach the LLM
+    assert any("rollback" in n for n in f["not_effective"])
 
 
 def test_diagnose_bad_image_rollout_while_still_serving():
@@ -276,7 +278,11 @@ def test_confirmed_restart_and_rollback_patch_the_deployment():
     rb = reg.execute("rollback_deployment", {}, confirmed=True)
     assert rb.ok, rb.error
     assert rb.data["from_revision"] == 3 and rb.data["to_revision"] == 2
-    template = c.patches[-1][2]["spec"]["template"]
+    ops = c.patches[-1][2]
+    assert isinstance(ops, list), "rollback must be a JSON patch (replace), not a strategic merge"
+    replace = next(o for o in ops if o["path"] == "/spec/template")
+    assert replace["op"] == "replace"
+    template = replace["value"]
     assert template["spec"]["containers"][0]["image"] == "churn-api:1.0.0"
     assert "pod-template-hash" not in template["metadata"]["labels"]
 

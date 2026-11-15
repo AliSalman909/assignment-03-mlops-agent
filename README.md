@@ -146,6 +146,8 @@ python -m agent.cli restore_dataset_workspace '{}' --confirm
 
 ## Tests
 
+Before committing/pushing: `bash scripts/check_secrets.sh` (scans staged changes and tracked files for the values in `.env`/`.secrets/` and for credential patterns; never prints them).
+
 ```bash
 pytest -q        # 71 tests; DVC uses a temp git+DVC repo; MLflow, Airflow and Kubernetes are mocked
 ruff check .
@@ -168,7 +170,9 @@ ruff check .
 | `K8S_NAMESPACE` / `K8S_APPROVED_NAMESPACES` | `mlops` / `mlops` | default namespace / namespaces the agent may touch |
 | `K8S_MANAGED_LABEL` | `app.kubernetes.io/part-of=mlops-agent` | only Deployments with this label can be modified |
 | `GEMINI_API_KEY` | - | Gemini API key (put it in `.env`, which is git-ignored) |
-| `GEMINI_MODEL` | `gemini-flash-lite-latest` | model used by the agent |
+| `GEMINI_MODEL` | `gemini-flash-lite-latest` | model used by the agent (any Gemini model id; `*-latest` aliases resolve server-side, the concrete version is reported in each response's `model` field) |
+| `GEMINI_API_VERSION` | `v1beta` | Gemini API version (`*-latest` aliases exist only on `v1beta`) |
+| `GEMINI_TEMPERATURE` | `0.1` | sampling temperature (low = consistent tool use) |
 | `AGENT_API_KEY` | (unset = open) | require `X-API-Key` on the agent API |
 | `AGENT_MAX_STEPS` / `AGENT_MAX_TOOL_CALLS` | `10` / `25` | agent loop budgets |
 | `RETRAIN_MAX_MODEL_AGE_DAYS` / `RETRAIN_MIN_PRODUCTION_F1` | `30` / `0.45` | retraining policy thresholds |

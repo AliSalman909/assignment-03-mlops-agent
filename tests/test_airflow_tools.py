@@ -206,3 +206,15 @@ def test_airflow_unreachable_or_slow(exc, status):
     register_airflow_tools(reg, AirflowTools(settings=settings, client=client))
     res = reg.execute("get_dag_runs", {})
     assert res.status == status and res.data is None
+
+
+def test_trigger_reports_run_even_if_polling_fails():
+    class FlakyPolling(FakeAirflow):
+        def __call__(self, request):
+            if request.url.path.endswith("/dagRuns/manual__1"):
+                return httpx.Response(503)
+            return super().__call__(request)
+
+    res = _registry(FlakyPolling()).execute("trigger_training_pipeline", {"wait_seconds": 30}, confirmed=True)
+    assert res.ok and res.data["triggered"] is True and res.data["run_id"] == "manual__1"
+    assert res.data["finished_within_wait"] is False and "do not re-trigger" in res.data["next_step"]

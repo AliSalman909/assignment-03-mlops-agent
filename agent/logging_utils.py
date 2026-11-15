@@ -13,7 +13,13 @@ import sys
 from datetime import UTC, datetime
 from typing import Any
 
-SENSITIVE_KEYS = re.compile(r"(pass(word)?|secret|token|api[_-]?key|authorization|credential|kubeconfig)", re.I)
+# Match whole key segments ("access_token", "AIRFLOW_ADMIN_PASSWORD", "x-api-key") but not keys that merely
+# contain a word, e.g. "prompt_tokens" (an LLM token count, not a secret).
+SENSITIVE_KEYS = re.compile(
+    r"(^|[_\-.])(pass(word)?|passwd|secret|token|api[_-]?key|apikey|authorization|credentials?|kubeconfig"
+    r"|private[_-]?key)$",
+    re.I,
+)
 REDACTED = "***REDACTED***"
 SENSITIVE_VALUES: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"(?i)bearer\s+[a-z0-9._\-]+"), REDACTED),

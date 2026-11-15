@@ -373,12 +373,20 @@ class AirflowTools:
             json={"logical_date": None, "conf": p.config, "note": "triggered by MLOps agent after user confirmation"},
         )
         sources = [f"POST /api/v2/dags/{p.dag_id}/dagRuns"]
+        data: dict[str, Any] = {"dag_id": p.dag_id, **self._run_summary(run)}
         if p.wait_seconds:
-            run, finished = self._wait(p.dag_id, run["dag_run_id"], p.wait_seconds)
-            data = self._status_payload(p.dag_id, run, finished)
-            sources.append("polled run + task instance states")
-        else:
-            data = {"dag_id": p.dag_id, **self._run_summary(run)}
+            # The run now exists. A polling failure must not turn into "trigger failed" - that would invite
+            # a second, duplicate training run. Report the run id and that its outcome is not yet known.
+            try:
+                polled, finished = self._wait(p.dag_id, run["dag_run_id"], p.wait_seconds)
+                data = self._status_payload(p.dag_id, polled, finished)
+                sources.append("polled run + task instance states")
+            except ToolError as exc:
+                data["finished_within_wait"] = False
+                data["polling_error"] = f"run was triggered but its status could not be read: {exc}"
+                data["next_step"] = (
+                    f"check later with get_dag_run_status(run_id='{run['dag_run_id']}'); do not re-trigger"
+                )
         data["triggered"] = True
         return ToolOutput(data=data, evidence_source=sources)
 

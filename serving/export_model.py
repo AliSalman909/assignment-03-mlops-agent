@@ -38,17 +38,20 @@ def main() -> None:
     mv = client.get_model_version_by_alias(args.model_name, args.alias)
     run = client.get_run(mv.run_id)
 
-    if OUT.exists():
-        shutil.rmtree(OUT)
-    tmp = Path(mlflow.artifacts.download_artifacts(f"models:/{args.model_name}/{mv.version}"))
-    shutil.copytree(tmp, OUT / "mlflow_model")
-
+    # verify provenance BEFORE touching serving/model, so a refused export leaves the previous model intact
     tags = run.data.tags
+    if not (tags.get("git_commit") and tags.get("dataset_md5")):
+        raise SystemExit("refusing to export: the source run has no git_commit/dataset_md5 provenance tags")
     reg = ToolRegistry()
     register_dvc_tools(reg)
     ds = reg.execute("get_dataset_version", {"git_commit": tags["git_commit"], "expected_md5": tags["dataset_md5"]})
     if not ds.ok or not ds.data.get("md5_matches_expected"):
         raise SystemExit(f"refusing to export: dataset provenance could not be verified ({ds.error})")
+
+    tmp = Path(mlflow.artifacts.download_artifacts(f"models:/{args.model_name}/{mv.version}"))
+    if OUT.exists():
+        shutil.rmtree(OUT)
+    shutil.copytree(tmp, OUT / "mlflow_model")
 
     meta = {
         "model_name": args.model_name,

@@ -52,10 +52,10 @@ def load_model() -> None:
             raise FileNotFoundError(f"model directory not found: {model_path}")
         import mlflow.sklearn
 
-        STATE["model"] = mlflow.sklearn.load_model(str(model_path))
-        STATE["meta"] = json.loads(meta_path.read_text())
-        STATE["loaded_at"] = time.time()
-        STATE["error"] = None
+        # load both into locals first: the service only becomes ready if model AND lineage metadata load
+        meta = json.loads(meta_path.read_text())
+        model = mlflow.sklearn.load_model(str(model_path))
+        STATE.update(model=model, meta=meta, loaded_at=time.time(), error=None)
         log.info(
             "model loaded: %s v%s (run %s, dataset %s)",
             STATE["meta"].get("model_name"),
@@ -123,6 +123,12 @@ def predict(req: PredictRequest):
     if model is None:
         raise HTTPException(status_code=503, detail=f"model not loaded: {STATE['error'] or 'loading'}")
     columns = list(getattr(model, "feature_names_in_", []))
+    # optional inputs become required when the served model was trained on them (e.g. last_login_days for
+    # v2.0-data models); a clear 422 instead of a NaN crash inside the model
+    optional = {name for name, f in Customer.model_fields.items() if not f.is_required()}
+    missing = sorted(col for col in optional & set(columns) if any(getattr(c, col) is None for c in req.customers))
+    if missing:
+        raise HTTPException(status_code=422, detail=f"the deployed model requires fields: {missing}")
     X = _features(req.customers, columns)
     threshold = float(THRESHOLD_OVERRIDE) if THRESHOLD_OVERRIDE else STATE["meta"].get("decision_threshold", 0.5)
     proba = model.predict_proba(X)[:, 1]

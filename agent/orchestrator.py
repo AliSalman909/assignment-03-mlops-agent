@@ -14,6 +14,8 @@ Guarantees enforced in code (not just in the prompt):
 from __future__ import annotations
 
 import json
+import re
+import threading
 import time
 import uuid
 from dataclasses import dataclass, field
@@ -91,9 +93,14 @@ MODULE_KEYWORDS: dict[str, tuple[str, ...]] = {
 }
 
 
+_KEYWORD_RES = {m: re.compile(r"\b(" + "|".join(map(re.escape, ws)) + r")") for m, ws in MODULE_KEYWORDS.items()}
+
+
 def required_modules(message: str) -> set[str]:
+    """Modules a question involves. Keywords match at word starts ('deploy' matches 'deployment', but 'api'
+    does not match 'rapid')."""
     text = message.lower()
-    return {m for m, words in MODULE_KEYWORDS.items() if any(w in text for w in words)}
+    return {m for m, rx in _KEYWORD_RES.items() if rx.search(text)}
 
 
 @dataclass
@@ -117,6 +124,8 @@ class MLOpsAgent:
         self.specs = registry.specs()
         self._pending: dict[str, _Parked] = {}
         self._sessions: dict[str, _Session] = {}
+        # FastAPI runs sync endpoints in a thread pool: guard shared state
+        self._lock = threading.RLock()
 
     # ------------------------------------------------------------------ helpers
     def _payload(self, result: ToolResult) -> dict[str, Any]:
@@ -135,6 +144,10 @@ class MLOpsAgent:
         return body
 
     def _park(self, call: FunctionCall, request_id: str, session_id: str) -> PendingAction:
+        with self._lock:
+            now = time.time()
+            for aid in [a for a, p in self._pending.items() if p.action.expires_at < now]:
+                del self._pending[aid]
         spec = next(s for s in self.specs if s.name == call.name)
         action = PendingAction(
             action_id=uuid.uuid4().hex[:10],
@@ -143,19 +156,43 @@ class MLOpsAgent:
             description=spec.description.split(".")[0],
             expires_at=time.time() + self.settings.pending_action_ttl_s,
         )
-        self._pending[action.action_id] = _Parked(action, request_id, session_id)
+        with self._lock:
+            self._pending[action.action_id] = _Parked(action, request_id, session_id)
         return action
+
+    def _model_label(self) -> str:
+        name = getattr(self.llm, "model_name", "unknown")
+        resolved = getattr(self.llm, "last_model_version", None)
+        return f"{name} ({resolved})" if resolved and resolved != name else name
 
     @staticmethod
     def _gap(record: ToolCallRecord) -> str:
         return f"{record.tool}: {record.status.value} - {record.error or 'no data'}"
 
+    MAX_SESSIONS = 200
+    MAX_HISTORY = 40
+
     def _session(self, session_id: str | None) -> tuple[str, _Session]:
-        now = time.time()
-        for sid in [s for s, v in self._sessions.items() if now - v.updated > 3600]:
-            del self._sessions[sid]  # expire idle sessions
-        sid = session_id or uuid.uuid4().hex[:12]
-        return sid, self._sessions.setdefault(sid, _Session())
+        with self._lock:
+            now = time.time()
+            for sid in [s for s, v in self._sessions.items() if now - v.updated > 3600]:
+                del self._sessions[sid]  # expire idle sessions
+            while len(self._sessions) >= self.MAX_SESSIONS and session_id not in self._sessions:
+                oldest = min(self._sessions, key=lambda k: self._sessions[k].updated)
+                del self._sessions[oldest]  # bounded memory: evict least recently used
+            sid = session_id or uuid.uuid4().hex[:12]
+            return sid, self._sessions.setdefault(sid, _Session())
+
+    @classmethod
+    def _trim(cls, messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Keep recent history, cutting only at a user turn so a function response is never separated from
+        the function call it answers (Gemini rejects orphaned function responses)."""
+        if len(messages) <= cls.MAX_HISTORY:
+            return messages
+        start = len(messages) - cls.MAX_HISTORY
+        while start < len(messages) and messages[start]["role"] != "user":
+            start += 1
+        return messages[start:]
 
     # ------------------------------------------------------------------ main loop
     def run(self, message: str, session_id: str | None = None, include_evidence: bool = False) -> AgentResponse:
@@ -168,6 +205,7 @@ class MLOpsAgent:
         cache: dict[str, ToolResult] = {}
         answer: str | None = None
         nudged = False
+        skipped: list[str] = []
         step = 0
         log_event(logger, "agent_request", request_id=request_id, session_id=sid, message_chars=len(message))
 
@@ -188,7 +226,7 @@ class MLOpsAgent:
             if not turn.calls:
                 used = {s.module for s in self.specs if s.name in {r.tool for r in records}}
                 missing = sorted(required_modules(message) - used)
-                if missing and not nudged and step < self.settings.agent_max_steps:
+                if missing and not nudged and not pending and step < self.settings.agent_max_steps:
                     nudged = True
                     log_event(logger, "agent_coverage_nudge", request_id=request_id, missing=missing)
                     messages.append(
@@ -211,6 +249,7 @@ class MLOpsAgent:
                 key = f"{call.name}:{json.dumps(call.args, sort_keys=True, default=str)}"
                 if len(records) >= self.settings.agent_max_tool_calls:
                     payload = {"status": "error", "error": "tool-call budget exhausted; answer with what you have"}
+                    skipped.append(f"{call.name}: not called - tool-call budget exhausted")
                 elif key in cache:
                     payload = self._payload(cache[key]) | {"note": "cached result of an identical earlier call"}
                 else:
@@ -245,7 +284,9 @@ class MLOpsAgent:
                 "listed below; please narrow the question."
             )
 
-        gaps = [self._gap(r) for r in records if r.status not in (ToolStatus.OK, ToolStatus.CONFIRMATION_REQUIRED)]
+        gaps = [
+            self._gap(r) for r in records if r.status not in (ToolStatus.OK, ToolStatus.CONFIRMATION_REQUIRED)
+        ] + skipped
         if gaps:
             answer = f"{answer}\n\n**Data gaps (tools that did not return evidence):**\n" + "\n".join(
                 f"- {g}" for g in gaps
@@ -256,7 +297,7 @@ class MLOpsAgent:
             )
 
         # keep a bounded history so follow-up questions have context
-        session.messages = messages[-40:]
+        session.messages = self._trim(messages)
         session.updated = time.time()
         log_event(
             logger,
@@ -272,7 +313,7 @@ class MLOpsAgent:
             request_id=request_id,
             session_id=sid,
             answer=answer,
-            model=getattr(self.llm, "model_name", "unknown"),
+            model=self._model_label(),
             steps=step,
             tool_calls=records,
             pending_actions=pending,
@@ -283,18 +324,20 @@ class MLOpsAgent:
     # ------------------------------------------------------------------ confirmation
     def list_pending(self) -> list[PendingAction]:
         now = time.time()
-        return [p.action for p in self._pending.values() if p.action.expires_at > now]
+        with self._lock:
+            return [p.action for p in self._pending.values() if p.action.expires_at > now]
 
     def confirm(self, action_id: str, summarize: bool = True) -> AgentResponse:
         """Execute exactly the parked action (same tool, same arguments) - once."""
-        parked = self._pending.pop(action_id, None)
+        with self._lock:
+            parked = self._pending.pop(action_id, None)  # atomic: an action can only be confirmed once
         request_id = new_request_id()
         if parked is None or parked.action.expires_at < time.time():
             return AgentResponse(
                 request_id=request_id,
                 session_id=parked.session_id if parked else "-",
                 answer=f"No pending action '{action_id}' (unknown, already used, or expired). Nothing was executed.",
-                model=getattr(self.llm, "model_name", "unknown"),
+                model=self._model_label(),
                 steps=0,
             )
         a = parked.action
@@ -339,7 +382,7 @@ class MLOpsAgent:
             request_id=request_id,
             session_id=parked.session_id,
             answer=answer,
-            model=getattr(self.llm, "model_name", "unknown"),
+            model=self._model_label(),
             steps=1,
             tool_calls=[record],
             data_gaps=[] if res.ok else [self._gap(record)],

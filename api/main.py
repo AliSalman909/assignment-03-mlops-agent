@@ -23,12 +23,21 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from agent.config import get_settings
+from agent.llm import LLMError
 from agent.logging_utils import configure_logging, get_logger, log_event
 from agent.orchestrator import MLOpsAgent, build_agent
 from agent.schemas import AgentResponse, PendingAction, ToolSpec
 
 configure_logging()
 logger = get_logger("api")
+if not get_settings().agent_api_key:
+    log_event(
+        logger,
+        "api_auth_disabled",
+        level=30,
+        detail="AGENT_API_KEY is not set: /agent/* (including /agent/confirm) accept unauthenticated requests. "
+        "Set it for anything beyond local use.",
+    )
 app = FastAPI(
     title="MLOps AI Agent",
     version="1.0.0",
@@ -37,8 +46,15 @@ app = FastAPI(
 
 
 @lru_cache(maxsize=1)
-def get_agent() -> MLOpsAgent:
+def _agent_singleton() -> MLOpsAgent:
     return build_agent()
+
+
+def get_agent() -> MLOpsAgent:
+    try:
+        return _agent_singleton()
+    except LLMError as exc:  # e.g. GEMINI_API_KEY missing: a clear 503 instead of an opaque 500
+        raise HTTPException(status_code=503, detail=f"agent unavailable: {exc}") from exc
 
 
 def require_api_key(x_api_key: str | None = Header(default=None)) -> None:
