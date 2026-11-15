@@ -1,0 +1,65 @@
+{
+  "tool": "diagnose_dag_run",
+  "status": "ok",
+  "request_id": "cf8017fde970",
+  "duration_ms": 324.81,
+  "data": {
+    "dag_id": "churn_training_pipeline",
+    "dag_run_id": "manual__2026-11-15T11:09:45.641467+00:00",
+    "run_state": "success",
+    "tasks": [
+      {
+        "task_id": "validate_dataset",
+        "state": "success",
+        "try_number": 1
+      },
+      {
+        "task_id": "preprocess_data",
+        "state": "success",
+        "try_number": 2
+      },
+      {
+        "task_id": "train_model",
+        "state": "success",
+        "try_number": 1
+      },
+      {
+        "task_id": "evaluate_and_log",
+        "state": "success",
+        "try_number": 1
+      },
+      {
+        "task_id": "quality_gate",
+        "state": "success",
+        "try_number": 1
+      },
+      {
+        "task_id": "register_candidate",
+        "state": "success",
+        "try_number": 1
+      }
+    ],
+    "findings": [
+      {
+        "task_id": "preprocess_data",
+        "attempts": 2,
+        "failure_layer": "infrastructure (recovered)",
+        "explanation": "first attempt failed, a retry succeeded - retry policy absorbed a transient fault",
+        "recommended_action": "no action unless this recurs",
+        "evidence": [
+          "2026-11-15T11:09:50.041286Z WARNING INJECTED FAILURE: simulating a transient storage timeout on the first attempt",
+          "2026-11-15T11:09:50.041596Z ERROR Task failed with exception",
+          "    TimeoutError: TRANSIENT: object storage read timed out (attempt 1)"
+        ]
+      }
+    ],
+    "blocked_downstream_tasks": [],
+    "diagnosis": "run succeeded after retries"
+  },
+  "error": null,
+  "evidence_source": [
+    "GET dagRuns/manual__2026-11-15T11:09:45.641467+00:00",
+    "GET taskInstances",
+    "GET logs preprocess_data#1"
+  ]
+}

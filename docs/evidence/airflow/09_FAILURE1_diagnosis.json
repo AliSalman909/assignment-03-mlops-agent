@@ -1,0 +1,72 @@
+{
+  "tool": "diagnose_dag_run",
+  "status": "ok",
+  "request_id": "233a34f1770f",
+  "duration_ms": 329.69,
+  "data": {
+    "dag_id": "churn_training_pipeline",
+    "dag_run_id": "manual__2026-11-15T11:09:02.610408+00:00",
+    "run_state": "failed",
+    "tasks": [
+      {
+        "task_id": "validate_dataset",
+        "state": "failed",
+        "try_number": 1
+      },
+      {
+        "task_id": "evaluate_and_log",
+        "state": "upstream_failed",
+        "try_number": 0
+      },
+      {
+        "task_id": "preprocess_data",
+        "state": "upstream_failed",
+        "try_number": 0
+      },
+      {
+        "task_id": "quality_gate",
+        "state": "upstream_failed",
+        "try_number": 0
+      },
+      {
+        "task_id": "train_model",
+        "state": "upstream_failed",
+        "try_number": 0
+      },
+      {
+        "task_id": "register_candidate",
+        "state": "upstream_failed",
+        "try_number": 0
+      }
+    ],
+    "findings": [
+      {
+        "task_id": "validate_dataset",
+        "attempts": 1,
+        "failure_layer": "data",
+        "explanation": "the input dataset failed validation checks",
+        "recommended_action": "inspect the dataset version with the DVC tools; fix or roll back the data, then re-run",
+        "evidence": [
+          "2026-11-15T11:09:05.512676Z WARNING INJECTED FAILURE: simulating an upstream export that lost the label column",
+          "2026-11-15T11:09:05.529203Z ERROR Task failed with exception",
+          "    AirflowFailException: DATA_VALIDATION_FAILED: required_columns: missing=['churned']; duplicate_rate: duplicate rows=11.765% (max 5%)"
+        ]
+      }
+    ],
+    "blocked_downstream_tasks": [
+      "evaluate_and_log",
+      "preprocess_data",
+      "quality_gate",
+      "train_model",
+      "register_candidate"
+    ],
+    "promotion_blocked": true,
+    "diagnosis": "root cause in task 'validate_dataset' (data layer): the input dataset failed validation checks"
+  },
+  "error": null,
+  "evidence_source": [
+    "GET dagRuns/manual__2026-11-15T11:09:02.610408+00:00",
+    "GET taskInstances",
+    "GET logs validate_dataset#1"
+  ]
+}

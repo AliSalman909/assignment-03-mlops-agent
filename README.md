@@ -7,8 +7,8 @@ Kubernetes (serving), and never from model memory.
 | Module | Status |
 |---|---|
 | Task 1: DVC data management | ✅ implemented + tested |
-| Task 2: MLflow experiment intelligence | ⏳ |
-| Task 3: Airflow workflow agent | ⏳ |
+| Task 2: MLflow experiment intelligence | ✅ implemented + tested |
+| Task 3: Airflow workflow agent + training DAG | ✅ implemented + tested |
 | Task 4: Kubernetes operations | ⏳ |
 | Integration: LLM orchestrator + FastAPI | ⏳ |
 
@@ -23,8 +23,15 @@ agent/
   tools/
     base.py            registry + execute_tool (validation, confirmation policy, error mapping, logging)
     dvc_tools.py       Task 1
+    mlflow_tools.py    Task 2 (MlflowClient, read-only)
+    airflow_tools.py   Task 3 (Airflow 3 REST API v2, JWT auth)
+dags/training_pipeline.py     Airflow training DAG
+docker/airflow/               Airflow 3.4 image (+ scikit-learn, mlflow-skinny, skops)
+docker-compose.yml            MLflow 3.18 server + Airflow 3.4
 scripts/generate_dataset.py   deterministic dataset generator (v1.0, v1.1, v2.0)
+scripts/seed_experiments.py   provenance-tagged MLflow history + 'champion' model
 training/preprocess.py        DVC pipeline stage (clean + train/test split + stats.json)
+training/train.py             shared validation / training / MLflow logging / quality gate
 dvc.yaml / dvc.lock           pipeline definition and recorded hashes
 data/raw/churn.csv.dvc        DVC pointer to the raw dataset
 docs/evidence/dvc/            exported tool outputs used in the report
@@ -115,7 +122,7 @@ python -m agent.cli restore_dataset_workspace '{}' --confirm
 ## Tests
 
 ```bash
-pytest -q        # 25 tests; builds a temporary git+DVC repo, external failures are mocked
+pytest -q        # 44 tests; DVC uses a temp git+DVC repo, MLflow/Airflow are mocked
 ruff check .
 ```
 
@@ -128,7 +135,81 @@ ruff check .
 | `DVC_REPRODUCE_DIR` | `artifacts/reproduced` | sandbox for materialized versions |
 | `DVC_DEFAULT_DATASET` | `data/raw/churn.csv` | dataset used when none is specified |
 | `DVC_DATASET_TAG_PREFIX` | `data-` | prefix of dataset version tags |
+| `MLFLOW_TRACKING_URI` | `http://localhost:5000` | MLflow server |
+| `AIRFLOW_BASE_URL` | `http://localhost:8080` | Airflow API |
+| `AIRFLOW_USERNAME` / `AIRFLOW_ADMIN_PASSWORD` | `admin` / - | Airflow credentials (also used by docker compose) |
+| `AIRFLOW_APPROVED_DAGS` | `churn_training_pipeline` | DAGs the agent may trigger |
 | `GEMINI_API_KEY` | - | Gemini API key (put it in `.env`, which is git-ignored) |
 | `GEMINI_MODEL` | `gemini-flash-lite-latest` | model used by the agent |
 
 Copy `.env.example` to `.env` and fill in `GEMINI_API_KEY`.
+
+## Running the services (MLflow + Airflow)
+
+```bash
+cp .env.example .env            # set AIRFLOW_ADMIN_PASSWORD (and GEMINI_API_KEY)
+docker compose up -d --build    # MLflow http://localhost:5000, Airflow http://localhost:8080 (user admin)
+python scripts/seed_experiments.py   # one-off: 9 provenance-tagged runs + champion model
+```
+
+The project folder is mounted **read-only** into Airflow, so the pipeline can't modify the repo.
+
+## Task 2: MLflow tools (read-only, `MlflowClient`)
+
+| Tool | Parameters | What it does |
+|---|---|---|
+| `list_experiments` | `include_deleted` | experiments with run counts |
+| `list_runs` | `experiment_name`, `max_results`, `filter_string` | recent runs: metrics, model type, provenance tags |
+| `get_run_details` | `run_id` *(required)* | metrics, params, tags, artifacts, logged models, registered versions |
+| `find_best_run` | `metric`, `experiment_names`, `mode` | best run + production-readiness assessment |
+| `compare_runs` | `run_ids` or `last_n`, `experiment_name`, `metric` | side-by-side comparison, best per metric, reasoned recommendation |
+| `compare_experiments` | `experiment_names` *(≥2)*, `metric` | best/mean/std per experiment, model types |
+| `get_model_registry_info` | `model_name` | versions, aliases (`champion` = serving, `candidate` = awaiting review), source-run metrics and provenance |
+
+**The highest metric is never treated as "production-ready".** `find_best_run` and `compare_runs`
+report the margin over the runner-up (and flag it when it's within noise), trade-offs on other
+metrics, the quality-gate result, whether dataset provenance was recorded, and registry status,
+followed by the checks that still need a human.
+
+**Provenance contract.** Every run is tagged with `git_commit` and `dataset_md5`. Passing them to
+`get_dataset_version(git_commit=..., expected_md5=...)` returns the exact dataset version
+(e.g. *candidate v4 → data v2.0, champion v1 → data v1.1*, both with verified md5 matches).
+
+## Task 3: Airflow training pipeline and tools
+
+`dags/training_pipeline.py` (`churn_training_pipeline`):
+
+```
+validate_dataset → preprocess_data → train_model → evaluate_and_log (MLflow) → quality_gate → register_candidate
+```
+
+- **Retries:** 2 per task with a 10s delay. Deterministic failures (bad data, failed gate) raise
+  `AirflowFailException` and fail immediately without retrying.
+- **Promotion safety:** `register_candidate` runs only if every upstream task succeeded. Even then
+  the model gets the `candidate` alias; promotion to `champion` is a human decision.
+- **Quality gate:** `f1 ≥ 0.48`, `roc_auc ≥ 0.70`, and no more than 0.02 F1 regression vs. the champion
+  (thresholds calibrated on the seeded runs; overridable per run).
+- **Logging:** each validation check, dataset hash, metrics and gate decision is written to the task log.
+- **Failure injection** via trigger conf: `{"inject_failure": "corrupt_data"}`,
+  `{"inject_failure": "transient_error"}`, or `{"min_f1": 0.60}` (forces a gate failure).
+
+| Tool | Parameters | Kind | What it does |
+|---|---|---|---|
+| `list_dags` | `limit` | read | DAGs, paused state, tags, whether the agent may trigger them |
+| `get_dag_runs` | `dag_id`, `limit` | read | recent runs with state, timing, conf |
+| `get_dag_run_status` | `dag_id`, `dag_run_id`, `wait_seconds` | read | per-task states and attempts; can wait for completion |
+| `trigger_dag` | `dag_id`, `conf`, `wait_seconds` | **state-changing** | **requires confirmation**, DAG must be on `AIRFLOW_APPROVED_DAGS`, conf keys allow-listed |
+| `get_failed_tasks` | `dag_id`, `dag_run_id` | read | failed tasks and the downstream tasks they blocked |
+| `get_task_logs` | `dag_id`, `dag_run_id`, `task_id`, `try_number` | read | log tail of an attempt (secrets redacted) |
+| `diagnose_dag_run` | `dag_id`, `dag_run_id` | read | root task, error excerpt, failure layer, retries, promotion blocked?, next step |
+
+Regenerate MLflow/Airflow evidence (runs the 3 injected failures; needs the stack up):
+`bash scripts/collect_mlflow_airflow_evidence.sh`
+
+### Injected-failure results (from `docs/evidence/airflow/`)
+
+| Injection | Agent diagnosis | Promotion |
+|---|---|---|
+| `corrupt_data` | `validate_dataset` failed, **data layer**: `missing=['churned']`, duplicates 11.8% | blocked (5 tasks `upstream_failed`) |
+| `min_f1: 0.60` | `quality_gate` failed, **model layer**: `f1 0.4970 < min_f1 0.6` | blocked (`register_candidate` never ran) |
+| `transient_error` | `preprocess_data` failed on attempt 1, succeeded on retry: **recovered** | allowed |

@@ -1,0 +1,76 @@
+{
+  "tool": "get_dag_runs",
+  "status": "ok",
+  "request_id": "d7db02ffcbe6",
+  "duration_ms": 279.43,
+  "data": {
+    "dag_id": "churn_training_pipeline",
+    "count": 5,
+    "state_counts": {
+      "success": 3,
+      "failed": 2
+    },
+    "runs": [
+      {
+        "dag_run_id": "manual__2026-11-15T11:09:45.641467+00:00",
+        "state": "success",
+        "run_type": "manual",
+        "start_date": "2026-11-15T11:09:46.387048Z",
+        "end_date": "2026-11-15T11:10:22.873127Z",
+        "duration_s": 36.486079,
+        "conf": {
+          "inject_failure": "transient_error"
+        },
+        "note": "triggered by MLOps agent after user confirmation"
+      },
+      {
+        "dag_run_id": "manual__2026-11-15T11:09:17.472885+00:00",
+        "state": "failed",
+        "run_type": "manual",
+        "start_date": "2026-11-15T11:09:18.161792Z",
+        "end_date": "2026-11-15T11:09:41.337625Z",
+        "duration_s": 23.175833,
+        "conf": {
+          "min_f1": 0.6
+        },
+        "note": "triggered by MLOps agent after user confirmation"
+      },
+      {
+        "dag_run_id": "manual__2026-11-15T11:09:02.610408+00:00",
+        "state": "failed",
+        "run_type": "manual",
+        "start_date": "2026-11-15T11:09:03.910673Z",
+        "end_date": "2026-11-15T11:09:08.984067Z",
+        "duration_s": 5.073394,
+        "conf": {
+          "inject_failure": "corrupt_data"
+        },
+        "note": "triggered by MLOps agent after user confirmation"
+      },
+      {
+        "dag_run_id": "manual__2026-11-15T11:08:29.179045+00:00",
+        "state": "success",
+        "run_type": "manual",
+        "start_date": "2026-11-15T11:08:30.417954Z",
+        "end_date": "2026-11-15T11:08:57.846601Z",
+        "duration_s": 27.428647,
+        "conf": {},
+        "note": "triggered by MLOps agent after user confirmation"
+      },
+      {
+        "dag_run_id": "manual__2026-11-15T11:06:50.682165+00:00",
+        "state": "success",
+        "run_type": "manual",
+        "start_date": "2026-11-15T11:06:51.681975Z",
+        "end_date": "2026-11-15T11:07:26.008740Z",
+        "duration_s": 34.326765,
+        "conf": {},
+        "note": "triggered by MLOps agent after user confirmation"
+      }
+    ]
+  },
+  "error": null,
+  "evidence_source": [
+    "GET /api/v2/dags/churn_training_pipeline/dagRuns"
+  ]
+}

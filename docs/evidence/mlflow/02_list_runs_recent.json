@@ -1,0 +1,265 @@
+{
+  "tool": "list_runs",
+  "status": "ok",
+  "request_id": "ef2186955c78",
+  "duration_ms": 4005.23,
+  "data": {
+    "count": 10,
+    "runs": [
+      {
+        "run_id": "9f5fb01bf84c4c7fa9f981f3da8a895c",
+        "run_name": "airflow-gradient_boosting",
+        "experiment_id": "2",
+        "experiment_name": "churn-training-pipeline",
+        "status": "FINISHED",
+        "start_time": "2026-11-15T11:07:09.862000+00:00",
+        "model_type": "gradient_boosting",
+        "metrics": {
+          "f1": 0.497,
+          "precision": 0.4289,
+          "recall": 0.5906,
+          "accuracy": 0.725,
+          "roc_auc": 0.7282,
+          "train_rows": 4800.0
+        },
+        "provenance": {
+          "git_commit": "be063f5d8bac387fc0b11e48442d28a290aa1bd8",
+          "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+          "dataset_path": "data/raw/churn.csv",
+          "dataset_version": "unresolved",
+          "source": "airflow",
+          "quality_gate": "passed"
+        }
+      },
+      {
+        "run_id": "7c352a46eeaf41dc86cb55219cc70fc3",
+        "run_name": "gradient_boosting-data-v2.0",
+        "experiment_id": "1",
+        "experiment_name": "churn-baseline",
+        "status": "FINISHED",
+        "start_time": "2026-11-15T11:04:32.249000+00:00",
+        "model_type": "gradient_boosting",
+        "metrics": {
+          "f1": 0.506,
+          "precision": 0.433,
+          "recall": 0.6087,
+          "accuracy": 0.7267,
+          "roc_auc": 0.7364,
+          "train_rows": 4800.0
+        },
+        "provenance": {
+          "git_commit": "e8f5aaf75a16c27d26e3b4bdf3bfd7000bd973a9",
+          "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+          "dataset_path": "data/raw/churn.csv",
+          "dataset_version": "v2.0",
+          "source": "seed_experiments",
+          "quality_gate": "not_evaluated"
+        }
+      },
+      {
+        "run_id": "4c815512243241768e9d6ce68b071028",
+        "run_name": "random_forest-data-v2.0",
+        "experiment_id": "1",
+        "experiment_name": "churn-baseline",
+        "status": "FINISHED",
+        "start_time": "2026-11-15T11:04:10.508000+00:00",
+        "model_type": "random_forest",
+        "metrics": {
+          "f1": 0.4947,
+          "precision": 0.486,
+          "recall": 0.5036,
+          "accuracy": 0.7633,
+          "roc_auc": 0.7312,
+          "train_rows": 4800.0
+        },
+        "provenance": {
+          "git_commit": "e8f5aaf75a16c27d26e3b4bdf3bfd7000bd973a9",
+          "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+          "dataset_path": "data/raw/churn.csv",
+          "dataset_version": "v2.0",
+          "source": "seed_experiments",
+          "quality_gate": "not_evaluated"
+        }
+      },
+      {
+        "run_id": "cedfcc5e39ef43f094152b920000b52d",
+        "run_name": "logistic_regression-data-v2.0",
+        "experiment_id": "1",
+        "experiment_name": "churn-baseline",
+        "status": "FINISHED",
+        "start_time": "2026-11-15T11:03:53.203000+00:00",
+        "model_type": "logistic_regression",
+        "metrics": {
+          "f1": 0.5136,
+          "precision": 0.484,
+          "recall": 0.5471,
+          "accuracy": 0.7617,
+          "roc_auc": 0.7513,
+          "train_rows": 4800.0
+        },
+        "provenance": {
+          "git_commit": "e8f5aaf75a16c27d26e3b4bdf3bfd7000bd973a9",
+          "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+          "dataset_path": "data/raw/churn.csv",
+          "dataset_version": "v2.0",
+          "source": "seed_experiments",
+          "quality_gate": "not_evaluated"
+        }
+      },
+      {
+        "run_id": "e2138706e15945d8841f900488ad8cef",
+        "run_name": "gradient_boosting-data-v1.1",
+        "experiment_id": "1",
+        "experiment_name": "churn-baseline",
+        "status": "FINISHED",
+        "start_time": "2026-11-15T11:03:36.465000+00:00",
+        "model_type": "gradient_boosting",
+        "metrics": {
+          "f1": 0.4592,
+          "precision": 0.3655,
+          "recall": 0.6176,
+          "accuracy": 0.6133,
+          "roc_auc": 0.6479,
+          "train_rows": 4800.0
+        },
+        "provenance": {
+          "git_commit": "0f4a61990e9ef14143179c22eed7d951bd571c9b",
+          "dataset_md5": "45d0f04af574f1b29a3867bf1fcae39c",
+          "dataset_path": "data/raw/churn.csv",
+          "dataset_version": "v1.1",
+          "source": "seed_experiments",
+          "quality_gate": "not_evaluated"
+        }
+      },
+      {
+        "run_id": "5b4a0bc578674fd78f0a4682608402f9",
+        "run_name": "random_forest-data-v1.1",
+        "experiment_id": "1",
+        "experiment_name": "churn-baseline",
+        "status": "FINISHED",
+        "start_time": "2026-11-15T11:03:13.881000+00:00",
+        "model_type": "random_forest",
+        "metrics": {
+          "f1": 0.4458,
+          "precision": 0.3645,
+          "recall": 0.5737,
+          "accuracy": 0.6208,
+          "roc_auc": 0.6512,
+          "train_rows": 4800.0
+        },
+        "provenance": {
+          "git_commit": "0f4a61990e9ef14143179c22eed7d951bd571c9b",
+          "dataset_md5": "45d0f04af574f1b29a3867bf1fcae39c",
+          "dataset_path": "data/raw/churn.csv",
+          "dataset_version": "v1.1",
+          "source": "seed_experiments",
+          "quality_gate": "not_evaluated"
+        }
+      },
+      {
+        "run_id": "d53d7934671e4824bb68d908cacae91d",
+        "run_name": "logistic_regression-data-v1.1",
+        "experiment_id": "1",
+        "experiment_name": "churn-baseline",
+        "status": "FINISHED",
+        "start_time": "2026-11-15T11:02:56.412000+00:00",
+        "model_type": "logistic_regression",
+        "metrics": {
+          "f1": 0.4707,
+          "precision": 0.3599,
+          "recall": 0.6803,
+          "accuracy": 0.5933,
+          "roc_auc": 0.6673,
+          "train_rows": 4800.0
+        },
+        "provenance": {
+          "git_commit": "0f4a61990e9ef14143179c22eed7d951bd571c9b",
+          "dataset_md5": "45d0f04af574f1b29a3867bf1fcae39c",
+          "dataset_path": "data/raw/churn.csv",
+          "dataset_version": "v1.1",
+          "source": "seed_experiments",
+          "quality_gate": "passed"
+        }
+      },
+      {
+        "run_id": "3515427aa24e4ef6b1f0cb880f001a56",
+        "run_name": "gradient_boosting-data-v1.0",
+        "experiment_id": "1",
+        "experiment_name": "churn-baseline",
+        "status": "FINISHED",
+        "start_time": "2026-11-15T11:02:40.190000+00:00",
+        "model_type": "gradient_boosting",
+        "metrics": {
+          "f1": 0.4494,
+          "precision": 0.3189,
+          "recall": 0.7606,
+          "accuracy": 0.5038,
+          "roc_auc": 0.6401,
+          "train_rows": 3200.0
+        },
+        "provenance": {
+          "git_commit": "4ebc9ee898c55586f9f25163652ac56115f84ba9",
+          "dataset_md5": "43d9a0e1e27072f54279b3b20211be11",
+          "dataset_path": "data/raw/churn.csv",
+          "dataset_version": "v1.0",
+          "source": "seed_experiments",
+          "quality_gate": "not_evaluated"
+        }
+      },
+      {
+        "run_id": "af529390d50e467cb2de43993e760e7b",
+        "run_name": "random_forest-data-v1.0",
+        "experiment_id": "1",
+        "experiment_name": "churn-baseline",
+        "status": "FINISHED",
+        "start_time": "2026-11-15T11:02:19.282000+00:00",
+        "model_type": "random_forest",
+        "metrics": {
+          "f1": 0.4312,
+          "precision": 0.2816,
+          "recall": 0.9202,
+          "accuracy": 0.3538,
+          "roc_auc": 0.635,
+          "train_rows": 3200.0
+        },
+        "provenance": {
+          "git_commit": "4ebc9ee898c55586f9f25163652ac56115f84ba9",
+          "dataset_md5": "43d9a0e1e27072f54279b3b20211be11",
+          "dataset_path": "data/raw/churn.csv",
+          "dataset_version": "v1.0",
+          "source": "seed_experiments",
+          "quality_gate": "not_evaluated"
+        }
+      },
+      {
+        "run_id": "bfd8bdb4eab3422aa58b0dae54da3b3b",
+        "run_name": "logistic_regression-data-v1.0",
+        "experiment_id": "1",
+        "experiment_name": "churn-baseline",
+        "status": "FINISHED",
+        "start_time": "2026-11-15T11:01:56.522000+00:00",
+        "model_type": "logistic_regression",
+        "metrics": {
+          "f1": 0.4657,
+          "precision": 0.3527,
+          "recall": 0.6854,
+          "accuracy": 0.5813,
+          "roc_auc": 0.6648,
+          "train_rows": 3200.0
+        },
+        "provenance": {
+          "git_commit": "4ebc9ee898c55586f9f25163652ac56115f84ba9",
+          "dataset_md5": "43d9a0e1e27072f54279b3b20211be11",
+          "dataset_path": "data/raw/churn.csv",
+          "dataset_version": "v1.0",
+          "source": "seed_experiments",
+          "quality_gate": "not_evaluated"
+        }
+      }
+    ]
+  },
+  "error": null,
+  "evidence_source": [
+    "MlflowClient.search_runs(experiments=['churn-training-pipeline', 'churn-baseline', 'Default'])"
+  ]
+}

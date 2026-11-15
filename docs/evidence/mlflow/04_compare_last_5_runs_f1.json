@@ -1,0 +1,203 @@
+{
+  "tool": "compare_runs",
+  "status": "ok",
+  "request_id": "bb38798614cc",
+  "duration_ms": 2732.83,
+  "data": {
+    "basis": "5 most recent finished runs",
+    "metric": "f1",
+    "runs": [
+      {
+        "run_id": "9f5fb01bf84c4c7fa9f981f3da8a895c",
+        "run_name": "airflow-gradient_boosting",
+        "experiment_id": "2",
+        "experiment_name": "churn-training-pipeline",
+        "status": "FINISHED",
+        "start_time": "2026-11-15T11:07:09.862000+00:00",
+        "model_type": "gradient_boosting",
+        "metrics": {
+          "f1": 0.497,
+          "precision": 0.4289,
+          "recall": 0.5906,
+          "accuracy": 0.725,
+          "roc_auc": 0.7282,
+          "train_rows": 4800.0
+        },
+        "provenance": {
+          "git_commit": "be063f5d8bac387fc0b11e48442d28a290aa1bd8",
+          "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+          "dataset_path": "data/raw/churn.csv",
+          "dataset_version": "unresolved",
+          "source": "airflow",
+          "quality_gate": "passed"
+        }
+      },
+      {
+        "run_id": "7c352a46eeaf41dc86cb55219cc70fc3",
+        "run_name": "gradient_boosting-data-v2.0",
+        "experiment_id": "1",
+        "experiment_name": "churn-baseline",
+        "status": "FINISHED",
+        "start_time": "2026-11-15T11:04:32.249000+00:00",
+        "model_type": "gradient_boosting",
+        "metrics": {
+          "f1": 0.506,
+          "precision": 0.433,
+          "recall": 0.6087,
+          "accuracy": 0.7267,
+          "roc_auc": 0.7364,
+          "train_rows": 4800.0
+        },
+        "provenance": {
+          "git_commit": "e8f5aaf75a16c27d26e3b4bdf3bfd7000bd973a9",
+          "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+          "dataset_path": "data/raw/churn.csv",
+          "dataset_version": "v2.0",
+          "source": "seed_experiments",
+          "quality_gate": "not_evaluated"
+        }
+      },
+      {
+        "run_id": "4c815512243241768e9d6ce68b071028",
+        "run_name": "random_forest-data-v2.0",
+        "experiment_id": "1",
+        "experiment_name": "churn-baseline",
+        "status": "FINISHED",
+        "start_time": "2026-11-15T11:04:10.508000+00:00",
+        "model_type": "random_forest",
+        "metrics": {
+          "f1": 0.4947,
+          "precision": 0.486,
+          "recall": 0.5036,
+          "accuracy": 0.7633,
+          "roc_auc": 0.7312,
+          "train_rows": 4800.0
+        },
+        "provenance": {
+          "git_commit": "e8f5aaf75a16c27d26e3b4bdf3bfd7000bd973a9",
+          "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+          "dataset_path": "data/raw/churn.csv",
+          "dataset_version": "v2.0",
+          "source": "seed_experiments",
+          "quality_gate": "not_evaluated"
+        }
+      },
+      {
+        "run_id": "cedfcc5e39ef43f094152b920000b52d",
+        "run_name": "logistic_regression-data-v2.0",
+        "experiment_id": "1",
+        "experiment_name": "churn-baseline",
+        "status": "FINISHED",
+        "start_time": "2026-11-15T11:03:53.203000+00:00",
+        "model_type": "logistic_regression",
+        "metrics": {
+          "f1": 0.5136,
+          "precision": 0.484,
+          "recall": 0.5471,
+          "accuracy": 0.7617,
+          "roc_auc": 0.7513,
+          "train_rows": 4800.0
+        },
+        "provenance": {
+          "git_commit": "e8f5aaf75a16c27d26e3b4bdf3bfd7000bd973a9",
+          "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+          "dataset_path": "data/raw/churn.csv",
+          "dataset_version": "v2.0",
+          "source": "seed_experiments",
+          "quality_gate": "not_evaluated"
+        }
+      },
+      {
+        "run_id": "e2138706e15945d8841f900488ad8cef",
+        "run_name": "gradient_boosting-data-v1.1",
+        "experiment_id": "1",
+        "experiment_name": "churn-baseline",
+        "status": "FINISHED",
+        "start_time": "2026-11-15T11:03:36.465000+00:00",
+        "model_type": "gradient_boosting",
+        "metrics": {
+          "f1": 0.4592,
+          "precision": 0.3655,
+          "recall": 0.6176,
+          "accuracy": 0.6133,
+          "roc_auc": 0.6479,
+          "train_rows": 4800.0
+        },
+        "provenance": {
+          "git_commit": "0f4a61990e9ef14143179c22eed7d951bd571c9b",
+          "dataset_md5": "45d0f04af574f1b29a3867bf1fcae39c",
+          "dataset_path": "data/raw/churn.csv",
+          "dataset_version": "v1.1",
+          "source": "seed_experiments",
+          "quality_gate": "not_evaluated"
+        }
+      }
+    ],
+    "ranking": [
+      {
+        "run_id": "cedfcc5e39ef43f094152b920000b52d",
+        "f1": 0.5136
+      },
+      {
+        "run_id": "7c352a46eeaf41dc86cb55219cc70fc3",
+        "f1": 0.506
+      },
+      {
+        "run_id": "9f5fb01bf84c4c7fa9f981f3da8a895c",
+        "f1": 0.497
+      },
+      {
+        "run_id": "4c815512243241768e9d6ce68b071028",
+        "f1": 0.4947
+      },
+      {
+        "run_id": "e2138706e15945d8841f900488ad8cef",
+        "f1": 0.4592
+      }
+    ],
+    "best_per_metric": {
+      "f1": {
+        "value": 0.5136,
+        "run_id": "cedfcc5e39ef43f094152b920000b52d"
+      },
+      "precision": {
+        "value": 0.486,
+        "run_id": "4c815512243241768e9d6ce68b071028"
+      },
+      "recall": {
+        "value": 0.6176,
+        "run_id": "e2138706e15945d8841f900488ad8cef"
+      },
+      "roc_auc": {
+        "value": 0.7513,
+        "run_id": "cedfcc5e39ef43f094152b920000b52d"
+      },
+      "accuracy": {
+        "value": 0.7633,
+        "run_id": "4c815512243241768e9d6ce68b071028"
+      }
+    },
+    "recommendation": {
+      "recommended_run_id": "cedfcc5e39ef43f094152b920000b52d",
+      "selection_basis": "max f1 = 0.5136",
+      "registered_versions": [],
+      "observations": [
+        "margin over runner-up (7c352a46) is only 0.0076 f1: within typical evaluation noise, so the ranking is not decisive",
+        "not the best on recall (0.547 vs best 0.618)",
+        "no automated quality-gate result recorded for this run",
+        "not registered in the model registry"
+      ],
+      "blockers": [],
+      "production_ready": "not determined by metrics alone",
+      "still_requires": [
+        "human review and explicit promotion to the 'champion' alias",
+        "confirmation that it was trained on the current approved dataset version",
+        "checks not recorded in MLflow (latency, robustness, fairness, business sign-off)"
+      ]
+    }
+  },
+  "error": null,
+  "evidence_source": [
+    "MlflowClient.search_runs/get_run"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "tool": "trigger_dag",
+  "status": "confirmation_required",
+  "request_id": "a6f9c7024729",
+  "duration_ms": 0.04,
+  "data": null,
+  "error": "'trigger_dag' changes state and requires explicit user confirmation; nothing was executed",
+  "evidence_source": []
+}

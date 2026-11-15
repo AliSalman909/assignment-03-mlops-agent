@@ -1,0 +1,96 @@
+{
+  "tool": "find_best_run",
+  "status": "ok",
+  "request_id": "0b842cddcc9f",
+  "duration_ms": 5610.62,
+  "data": {
+    "metric": "f1",
+    "mode": "max",
+    "candidates_considered": 10,
+    "best_run": {
+      "run_id": "cedfcc5e39ef43f094152b920000b52d",
+      "run_name": "logistic_regression-data-v2.0",
+      "experiment_id": "1",
+      "experiment_name": "churn-baseline",
+      "status": "FINISHED",
+      "start_time": "2026-11-15T11:03:53.203000+00:00",
+      "model_type": "logistic_regression",
+      "metrics": {
+        "f1": 0.5136,
+        "precision": 0.484,
+        "recall": 0.5471,
+        "accuracy": 0.7617,
+        "roc_auc": 0.7513,
+        "train_rows": 4800.0
+      },
+      "provenance": {
+        "git_commit": "e8f5aaf75a16c27d26e3b4bdf3bfd7000bd973a9",
+        "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+        "dataset_path": "data/raw/churn.csv",
+        "dataset_version": "v2.0",
+        "source": "seed_experiments",
+        "quality_gate": "not_evaluated"
+      }
+    },
+    "top_5": [
+      {
+        "run_id": "cedfcc5e39ef43f094152b920000b52d",
+        "run_name": "logistic_regression-data-v2.0",
+        "model_type": "logistic_regression",
+        "f1": 0.5136,
+        "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da"
+      },
+      {
+        "run_id": "7c352a46eeaf41dc86cb55219cc70fc3",
+        "run_name": "gradient_boosting-data-v2.0",
+        "model_type": "gradient_boosting",
+        "f1": 0.506,
+        "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da"
+      },
+      {
+        "run_id": "9f5fb01bf84c4c7fa9f981f3da8a895c",
+        "run_name": "airflow-gradient_boosting",
+        "model_type": "gradient_boosting",
+        "f1": 0.497,
+        "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da"
+      },
+      {
+        "run_id": "4c815512243241768e9d6ce68b071028",
+        "run_name": "random_forest-data-v2.0",
+        "model_type": "random_forest",
+        "f1": 0.4947,
+        "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da"
+      },
+      {
+        "run_id": "d53d7934671e4824bb68d908cacae91d",
+        "run_name": "logistic_regression-data-v1.1",
+        "model_type": "logistic_regression",
+        "f1": 0.4707,
+        "dataset_md5": "45d0f04af574f1b29a3867bf1fcae39c"
+      }
+    ],
+    "assessment": {
+      "recommended_run_id": "cedfcc5e39ef43f094152b920000b52d",
+      "selection_basis": "max f1 = 0.5136",
+      "registered_versions": [],
+      "observations": [
+        "margin over runner-up (7c352a46) is only 0.0076 f1: within typical evaluation noise, so the ranking is not decisive",
+        "not the best on recall (0.547 vs best 0.920)",
+        "no automated quality-gate result recorded for this run",
+        "not registered in the model registry"
+      ],
+      "blockers": [],
+      "production_ready": "not determined by metrics alone",
+      "still_requires": [
+        "human review and explicit promotion to the 'champion' alias",
+        "confirmation that it was trained on the current approved dataset version",
+        "checks not recorded in MLflow (latency, robustness, fairness, business sign-off)"
+      ]
+    }
+  },
+  "error": null,
+  "evidence_source": [
+    "MlflowClient.search_runs(order_by=metrics.`f1` DESC)",
+    "MlflowClient.search_model_versions"
+  ]
+}

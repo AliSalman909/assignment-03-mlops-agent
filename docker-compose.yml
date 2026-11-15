@@ -1,0 +1,65 @@
+# Local MLOps stack: MLflow tracking/registry + Airflow 3.
+#   docker compose up -d --build
+#   MLflow  -> http://localhost:5000
+#   Airflow -> http://localhost:8080  (user: admin, password: AIRFLOW_ADMIN_PASSWORD from .env)
+name: mlops-agent
+
+services:
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v3.18.0
+    command: >
+      mlflow server
+      --host 0.0.0.0 --port 5000
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --artifacts-destination /mlflow/artifacts
+      --serve-artifacts
+      --allowed-hosts "localhost,localhost:5000,127.0.0.1:5000,mlflow,mlflow:5000"
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow-data:/mlflow
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  airflow:
+    build:
+      context: .
+      dockerfile: docker/airflow/Dockerfile
+    image: mlops-agent-airflow:3.4.0
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    environment:
+      AIRFLOW_ADMIN_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD:?set AIRFLOW_ADMIN_PASSWORD in .env}
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: "admin:admin"
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: /opt/airflow/simple_auth_passwords.json
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/db/airflow.db
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "False"
+      AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL: "30"
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      MLOPS_PROJECT_ROOT: /opt/project
+      MLOPS_WORK_ROOT: /opt/airflow/work
+      PYTHONPATH: /opt/project
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./dags:/opt/airflow/dags:ro
+      - .:/opt/project:ro            # read-only: the pipeline can never modify the repo
+      - airflow-state:/opt/airflow/db
+      - airflow-work:/opt/airflow/work
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/v2/monitor/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  mlflow-data:
+  airflow-state:
+  airflow-work:

@@ -29,6 +29,24 @@ class Settings:
     default_dataset: str = field(default_factory=lambda: _env("DVC_DEFAULT_DATASET", "data/raw/churn.csv"))
     dataset_tag_prefix: str = field(default_factory=lambda: _env("DVC_DATASET_TAG_PREFIX", "data-"))
 
+    # MLflow
+    mlflow_tracking_uri: str = field(default_factory=lambda: _env("MLFLOW_TRACKING_URI", "http://localhost:5000"))
+    mlflow_timeout_s: float = field(default_factory=lambda: float(_env("MLFLOW_TIMEOUT_S", "10")))
+
+    # Airflow 3 REST API
+    airflow_base_url: str = field(default_factory=lambda: _env("AIRFLOW_BASE_URL", "http://localhost:8080"))
+    airflow_username: str = field(default_factory=lambda: _env("AIRFLOW_USERNAME", "admin"))
+    airflow_password: str | None = field(
+        default_factory=lambda: os.environ.get("AIRFLOW_PASSWORD") or os.environ.get("AIRFLOW_ADMIN_PASSWORD"),
+        repr=False,
+    )
+    airflow_timeout_s: float = field(default_factory=lambda: float(_env("AIRFLOW_TIMEOUT_S", "15")))
+    airflow_approved_dags: tuple[str, ...] = field(
+        default_factory=lambda: tuple(
+            d.strip() for d in _env("AIRFLOW_APPROVED_DAGS", "churn_training_pipeline").split(",") if d.strip()
+        )
+    )
+
     # LLM (Gemini). The key is only ever read from the environment / .env and never logged.
     gemini_model: str = field(default_factory=lambda: _env("GEMINI_MODEL", "gemini-flash-lite-latest"))
     gemini_api_key: str | None = field(default_factory=lambda: os.environ.get("GEMINI_API_KEY"), repr=False)

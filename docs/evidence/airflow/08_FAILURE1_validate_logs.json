@@ -1,0 +1,37 @@
+{
+  "tool": "get_task_logs",
+  "status": "ok",
+  "request_id": "30e04260efae",
+  "duration_ms": 476.57,
+  "data": {
+    "dag_id": "churn_training_pipeline",
+    "dag_run_id": "manual__2026-11-15T11:09:02.610408+00:00",
+    "task_id": "validate_dataset",
+    "try_number": 1,
+    "total_lines": 18,
+    "lines": [
+      "::group::Log message source details",
+      "/opt/airflow/logs/dag_id=churn_training_pipeline/run_id=manual__2026-11-15T11:09:02.610408+00:00/task_id=validate_dataset/attempt=1.log",
+      "::endgroup::",
+      "2026-11-15T11:09:04.087304Z INFO ::group::Pre Execute",
+      "2026-11-15T11:09:04.106352Z INFO DAG bundles loaded: dags-folder",
+      "2026-11-15T11:09:04.108835Z INFO Filling up the DagBag from /opt/airflow/dags/training_pipeline.py",
+      "2026-11-15T11:09:04.170222Z INFO Worker startup parse complete",
+      "2026-11-15T11:09:04.192837Z INFO ::endgroup::",
+      "2026-11-15T11:09:05.512676Z WARNING INJECTED FAILURE: simulating an upstream export that lost the label column",
+      "2026-11-15T11:09:05.528680Z INFO validation check required_columns       FAIL  missing=['churned']",
+      "2026-11-15T11:09:05.528860Z INFO validation check min_rows               PASS  rows=6800 (min 1000)",
+      "2026-11-15T11:09:05.528934Z INFO validation check null_rate              PASS  max column null rate=0.000 (max 0.05)",
+      "2026-11-15T11:09:05.528990Z INFO validation check duplicate_rate         FAIL  duplicate rows=11.765% (max 5%)",
+      "2026-11-15T11:09:05.529034Z INFO validation check non_negative_charges   PASS  negative monthly_charges rows=0",
+      "2026-11-15T11:09:05.529203Z ERROR Task failed with exception",
+      "    AirflowFailException: DATA_VALIDATION_FAILED: required_columns: missing=['churned']; duplicate_rate: duplicate rows=11.765% (max 5%)",
+      "2026-11-15T11:09:05.538918Z INFO ::group::Post Execute",
+      "2026-11-15T11:09:05.540450Z INFO ::endgroup::"
+    ]
+  },
+  "error": null,
+  "evidence_source": [
+    "GET taskInstances/validate_dataset/logs/1"
+  ]
+}

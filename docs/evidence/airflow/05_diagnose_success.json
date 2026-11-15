@@ -1,0 +1,51 @@
+{
+  "tool": "diagnose_dag_run",
+  "status": "ok",
+  "request_id": "afcda03750d4",
+  "duration_ms": 461.83,
+  "data": {
+    "dag_id": "churn_training_pipeline",
+    "dag_run_id": "manual__2026-11-15T11:08:29.179045+00:00",
+    "run_state": "success",
+    "tasks": [
+      {
+        "task_id": "validate_dataset",
+        "state": "success",
+        "try_number": 1
+      },
+      {
+        "task_id": "preprocess_data",
+        "state": "success",
+        "try_number": 1
+      },
+      {
+        "task_id": "train_model",
+        "state": "success",
+        "try_number": 1
+      },
+      {
+        "task_id": "evaluate_and_log",
+        "state": "success",
+        "try_number": 1
+      },
+      {
+        "task_id": "quality_gate",
+        "state": "success",
+        "try_number": 1
+      },
+      {
+        "task_id": "register_candidate",
+        "state": "success",
+        "try_number": 1
+      }
+    ],
+    "findings": [],
+    "blocked_downstream_tasks": [],
+    "diagnosis": "run succeeded with no failures or retries"
+  },
+  "error": null,
+  "evidence_source": [
+    "GET dagRuns/manual__2026-11-15T11:08:29.179045+00:00",
+    "GET taskInstances"
+  ]
+}

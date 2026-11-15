@@ -1,0 +1,67 @@
+{
+  "tool": "diagnose_dag_run",
+  "status": "ok",
+  "request_id": "a01278e33ba2",
+  "duration_ms": 324.6,
+  "data": {
+    "dag_id": "churn_training_pipeline",
+    "dag_run_id": "manual__2026-11-15T11:09:17.472885+00:00",
+    "run_state": "failed",
+    "tasks": [
+      {
+        "task_id": "validate_dataset",
+        "state": "success",
+        "try_number": 1
+      },
+      {
+        "task_id": "preprocess_data",
+        "state": "success",
+        "try_number": 1
+      },
+      {
+        "task_id": "train_model",
+        "state": "success",
+        "try_number": 1
+      },
+      {
+        "task_id": "evaluate_and_log",
+        "state": "success",
+        "try_number": 1
+      },
+      {
+        "task_id": "quality_gate",
+        "state": "failed",
+        "try_number": 1
+      },
+      {
+        "task_id": "register_candidate",
+        "state": "upstream_failed",
+        "try_number": 0
+      }
+    ],
+    "findings": [
+      {
+        "task_id": "quality_gate",
+        "attempts": 1,
+        "failure_layer": "model",
+        "explanation": "the trained model did not meet the quality thresholds",
+        "recommended_action": "compare against previous runs in MLflow; do not promote; tune features/hyper-parameters or check data drift",
+        "evidence": [
+          "2026-11-15T11:09:40.933607Z ERROR Task failed with exception",
+          "    AirflowFailException: QUALITY_GATE_FAILED: f1 0.4970 < min_f1 0.6"
+        ]
+      }
+    ],
+    "blocked_downstream_tasks": [
+      "register_candidate"
+    ],
+    "promotion_blocked": true,
+    "diagnosis": "root cause in task 'quality_gate' (model layer): the trained model did not meet the quality thresholds"
+  },
+  "error": null,
+  "evidence_source": [
+    "GET dagRuns/manual__2026-11-15T11:09:17.472885+00:00",
+    "GET taskInstances",
+    "GET logs quality_gate#1"
+  ]
+}

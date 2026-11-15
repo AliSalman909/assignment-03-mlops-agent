@@ -1,0 +1,94 @@
+{
+  "tool": "trigger_dag",
+  "status": "ok",
+  "request_id": "069a6b563173",
+  "duration_ms": 40708.07,
+  "data": {
+    "dag_id": "churn_training_pipeline",
+    "dag_run_id": "manual__2026-11-15T11:09:45.641467+00:00",
+    "state": "success",
+    "run_type": "manual",
+    "start_date": "2026-11-15T11:09:46.387048Z",
+    "end_date": "2026-11-15T11:10:22.873127Z",
+    "duration_s": 36.486079,
+    "conf": {
+      "inject_failure": "transient_error"
+    },
+    "note": "triggered by MLOps agent after user confirmation",
+    "task_counts": {
+      "success": 6
+    },
+    "tasks": [
+      {
+        "task_id": "validate_dataset",
+        "state": "success",
+        "try_number": 1,
+        "max_tries": 2,
+        "start_date": "2026-11-15T11:09:46.626038Z",
+        "end_date": "2026-11-15T11:09:48.384597Z",
+        "duration_s": 1.759,
+        "operator": "_PythonDecoratedOperator"
+      },
+      {
+        "task_id": "preprocess_data",
+        "state": "success",
+        "try_number": 2,
+        "max_tries": 2,
+        "start_date": "2026-11-15T11:10:00.360900Z",
+        "end_date": "2026-11-15T11:10:02.019940Z",
+        "duration_s": 1.659,
+        "operator": "_PythonDecoratedOperator"
+      },
+      {
+        "task_id": "train_model",
+        "state": "success",
+        "try_number": 1,
+        "max_tries": 2,
+        "start_date": "2026-11-15T11:10:02.758122Z",
+        "end_date": "2026-11-15T11:10:05.577780Z",
+        "duration_s": 2.82,
+        "operator": "_PythonDecoratedOperator"
+      },
+      {
+        "task_id": "evaluate_and_log",
+        "state": "success",
+        "try_number": 1,
+        "max_tries": 2,
+        "start_date": "2026-11-15T11:10:05.741658Z",
+        "end_date": "2026-11-15T11:10:15.065783Z",
+        "duration_s": 9.324,
+        "operator": "_PythonDecoratedOperator"
+      },
+      {
+        "task_id": "quality_gate",
+        "state": "success",
+        "try_number": 1,
+        "max_tries": 2,
+        "start_date": "2026-11-15T11:10:16.052696Z",
+        "end_date": "2026-11-15T11:10:18.549102Z",
+        "duration_s": 2.496,
+        "operator": "_PythonDecoratedOperator"
+      },
+      {
+        "task_id": "register_candidate",
+        "state": "success",
+        "try_number": 1,
+        "max_tries": 2,
+        "start_date": "2026-11-15T11:10:18.963705Z",
+        "end_date": "2026-11-15T11:10:22.326664Z",
+        "duration_s": 3.363,
+        "operator": "_PythonDecoratedOperator"
+      }
+    ],
+    "finished_within_wait": true,
+    "tasks_retried": [
+      "preprocess_data"
+    ],
+    "triggered": true
+  },
+  "error": null,
+  "evidence_source": [
+    "POST /api/v2/dags/churn_training_pipeline/dagRuns",
+    "polled run + task instance states"
+  ]
+}

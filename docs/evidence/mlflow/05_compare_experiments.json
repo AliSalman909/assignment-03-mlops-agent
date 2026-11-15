@@ -1,0 +1,96 @@
+{
+  "tool": "compare_experiments",
+  "status": "ok",
+  "request_id": "ad4cd322892f",
+  "duration_ms": 3536.68,
+  "data": {
+    "metric": "f1",
+    "experiments": [
+      {
+        "experiment": "churn-baseline",
+        "experiment_id": "1",
+        "finished_runs": 9,
+        "runs_with_metric": 9,
+        "best_f1": 0.5136,
+        "mean_f1": 0.4707,
+        "std_f1": 0.0284,
+        "best_run": {
+          "run_id": "cedfcc5e39ef43f094152b920000b52d",
+          "run_name": "logistic_regression-data-v2.0",
+          "experiment_id": "1",
+          "experiment_name": "churn-baseline",
+          "status": "FINISHED",
+          "start_time": "2026-11-15T11:03:53.203000+00:00",
+          "model_type": "logistic_regression",
+          "metrics": {
+            "f1": 0.5136,
+            "precision": 0.484,
+            "recall": 0.5471,
+            "accuracy": 0.7617,
+            "roc_auc": 0.7513,
+            "train_rows": 4800.0
+          },
+          "provenance": {
+            "git_commit": "e8f5aaf75a16c27d26e3b4bdf3bfd7000bd973a9",
+            "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+            "dataset_path": "data/raw/churn.csv",
+            "dataset_version": "v2.0",
+            "source": "seed_experiments",
+            "quality_gate": "not_evaluated"
+          }
+        },
+        "latest_run_start": "2026-11-15T11:04:32.249000+00:00",
+        "model_types": [
+          "gradient_boosting",
+          "logistic_regression",
+          "random_forest"
+        ]
+      },
+      {
+        "experiment": "churn-training-pipeline",
+        "experiment_id": "2",
+        "finished_runs": 1,
+        "runs_with_metric": 1,
+        "best_f1": 0.497,
+        "mean_f1": 0.497,
+        "std_f1": null,
+        "best_run": {
+          "run_id": "9f5fb01bf84c4c7fa9f981f3da8a895c",
+          "run_name": "airflow-gradient_boosting",
+          "experiment_id": "2",
+          "experiment_name": "churn-training-pipeline",
+          "status": "FINISHED",
+          "start_time": "2026-11-15T11:07:09.862000+00:00",
+          "model_type": "gradient_boosting",
+          "metrics": {
+            "f1": 0.497,
+            "precision": 0.4289,
+            "recall": 0.5906,
+            "accuracy": 0.725,
+            "roc_auc": 0.7282,
+            "train_rows": 4800.0
+          },
+          "provenance": {
+            "git_commit": "be063f5d8bac387fc0b11e48442d28a290aa1bd8",
+            "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+            "dataset_path": "data/raw/churn.csv",
+            "dataset_version": "unresolved",
+            "source": "airflow",
+            "quality_gate": "passed"
+          }
+        },
+        "latest_run_start": "2026-11-15T11:07:09.862000+00:00",
+        "model_types": [
+          "gradient_boosting"
+        ]
+      }
+    ],
+    "leader": "churn-baseline",
+    "note": "experiments may use different dataset versions; compare provenance before concluding"
+  },
+  "error": null,
+  "evidence_source": [
+    "MlflowClient.get_experiment_by_name",
+    "MlflowClient.search_runs"
+  ]
+}

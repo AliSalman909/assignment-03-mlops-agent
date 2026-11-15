@@ -1,0 +1,27 @@
+{
+  "tool": "list_dags",
+  "status": "ok",
+  "request_id": "24919bba9921",
+  "duration_ms": 309.26,
+  "data": {
+    "count": 1,
+    "dags": [
+      {
+        "dag_id": "churn_training_pipeline",
+        "description": "Validate -> preprocess -> train -> evaluate/MLflow -> quality gate -> register candidate",
+        "is_paused": false,
+        "tags": [
+          "approved",
+          "ml",
+          "training"
+        ],
+        "schedule": "Never, external triggers only",
+        "approved_for_agent_trigger": true
+      }
+    ]
+  },
+  "error": null,
+  "evidence_source": [
+    "GET /api/v2/dags"
+  ]
+}

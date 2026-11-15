@@ -14,13 +14,16 @@ from datetime import UTC, datetime
 from typing import Any
 
 SENSITIVE_KEYS = re.compile(r"(pass(word)?|secret|token|api[_-]?key|authorization|credential|kubeconfig)", re.I)
-SENSITIVE_VALUES = [
-    re.compile(r"(?i)bearer\s+[a-z0-9._\-]+"),
-    re.compile(r"sk-[A-Za-z0-9_\-]{10,}"),  # LLM provider style keys
-    re.compile(r"(?i)(://[^:/\s]+:)[^@/\s]+@"),  # user:password@ in URLs
-    re.compile(r"eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]+"),  # JWTs
-]
 REDACTED = "***REDACTED***"
+SENSITIVE_VALUES: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"(?i)bearer\s+[a-z0-9._\-]+"), REDACTED),
+    (re.compile(r"sk-[A-Za-z0-9_\-]{10,}"), REDACTED),  # OpenAI-style keys
+    (re.compile(r"AIza[0-9A-Za-z_\-]{30,}"), REDACTED),  # Google / Gemini API keys
+    (re.compile(r"(?i)(://[^:/\s]+:)[^@/\s]+@"), r"\1" + REDACTED + "@"),  # user:password@ in URLs
+    (re.compile(r"eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]+"), REDACTED),  # JWTs
+    # key=value / key: value in free text (log lines, error messages)
+    (re.compile(r"(?i)\b(password|passwd|pwd|secret|token|api[_-]?key)(\s*[=:]\s*)[^\s,;'\"]+"), r"\1\2" + REDACTED),
+]
 
 
 def redact(value: Any) -> Any:
@@ -31,8 +34,8 @@ def redact(value: Any) -> Any:
         return [redact(v) for v in value]
     if isinstance(value, str):
         out = value
-        for pat in SENSITIVE_VALUES:
-            out = pat.sub(lambda m: (m.group(1) + REDACTED + "@") if m.lastindex else REDACTED, out)
+        for pat, repl in SENSITIVE_VALUES:
+            out = pat.sub(repl, out)
         return out
     return value
 

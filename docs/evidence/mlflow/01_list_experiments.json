@@ -1,0 +1,38 @@
+{
+  "tool": "list_experiments",
+  "status": "ok",
+  "request_id": "b8b1eb8ade49",
+  "duration_ms": 4925.45,
+  "data": {
+    "tracking_uri": "http://localhost:5000",
+    "count": 3,
+    "experiments": [
+      {
+        "experiment_id": "2",
+        "name": "churn-training-pipeline",
+        "lifecycle_stage": "active",
+        "num_runs": 1,
+        "last_update_time": "2026-11-15T11:07:09.495000+00:00"
+      },
+      {
+        "experiment_id": "1",
+        "name": "churn-baseline",
+        "lifecycle_stage": "active",
+        "num_runs": 9,
+        "last_update_time": "2026-11-15T11:00:51.548000+00:00"
+      },
+      {
+        "experiment_id": "0",
+        "name": "Default",
+        "lifecycle_stage": "active",
+        "num_runs": 0,
+        "last_update_time": "2026-11-15T10:59:45.786000+00:00"
+      }
+    ]
+  },
+  "error": null,
+  "evidence_source": [
+    "MlflowClient.search_experiments",
+    "MlflowClient.search_runs"
+  ]
+}

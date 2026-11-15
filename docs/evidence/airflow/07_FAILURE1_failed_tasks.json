@@ -1,0 +1,80 @@
+{
+  "tool": "get_failed_tasks",
+  "status": "ok",
+  "request_id": "63e977ec3437",
+  "duration_ms": 356.11,
+  "data": {
+    "dag_id": "churn_training_pipeline",
+    "dag_run_id": "manual__2026-11-15T11:09:02.610408+00:00",
+    "run_state": "failed",
+    "failed_tasks": [
+      {
+        "task_id": "validate_dataset",
+        "state": "failed",
+        "try_number": 1,
+        "max_tries": 2,
+        "start_date": "2026-11-15T11:09:04.075282Z",
+        "end_date": "2026-11-15T11:09:05.539021Z",
+        "duration_s": 1.464,
+        "operator": "_PythonDecoratedOperator"
+      }
+    ],
+    "blocked_downstream_tasks": [
+      {
+        "task_id": "evaluate_and_log",
+        "state": "upstream_failed",
+        "try_number": 0,
+        "max_tries": 2,
+        "start_date": "2026-11-15T11:09:05.867797Z",
+        "end_date": "2026-11-15T11:09:05.867797Z",
+        "duration_s": 0.0,
+        "operator": "_PythonDecoratedOperator"
+      },
+      {
+        "task_id": "preprocess_data",
+        "state": "upstream_failed",
+        "try_number": 0,
+        "max_tries": 2,
+        "start_date": "2026-11-15T11:09:05.871530Z",
+        "end_date": "2026-11-15T11:09:05.871530Z",
+        "duration_s": 0.0,
+        "operator": "_PythonDecoratedOperator"
+      },
+      {
+        "task_id": "quality_gate",
+        "state": "upstream_failed",
+        "try_number": 0,
+        "max_tries": 2,
+        "start_date": "2026-11-15T11:09:06.910925Z",
+        "end_date": "2026-11-15T11:09:06.910925Z",
+        "duration_s": 0.0,
+        "operator": "_PythonDecoratedOperator"
+      },
+      {
+        "task_id": "train_model",
+        "state": "upstream_failed",
+        "try_number": 0,
+        "max_tries": 2,
+        "start_date": "2026-11-15T11:09:06.912127Z",
+        "end_date": "2026-11-15T11:09:06.912127Z",
+        "duration_s": 0.0,
+        "operator": "_PythonDecoratedOperator"
+      },
+      {
+        "task_id": "register_candidate",
+        "state": "upstream_failed",
+        "try_number": 0,
+        "max_tries": 2,
+        "start_date": "2026-11-15T11:09:07.945301Z",
+        "end_date": "2026-11-15T11:09:07.945301Z",
+        "duration_s": 0.0,
+        "operator": "_PythonDecoratedOperator"
+      }
+    ],
+    "summary": "1 task(s) failed; 5 downstream task(s) did not run"
+  },
+  "error": null,
+  "evidence_source": [
+    "GET dagRuns/manual__2026-11-15T11:09:02.610408+00:00/taskInstances"
+  ]
+}
