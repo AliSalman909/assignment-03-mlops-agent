@@ -1,0 +1,20 @@
+{
+  "raw_rows": 4040,
+  "duplicates_removed": 40,
+  "train_rows": 3200,
+  "test_rows": 800,
+  "n_features": 12,
+  "positive_rate": 0.2665,
+  "columns": [
+    "customer_id",
+    "tenure_months",
+    "contract_type",
+    "monthly_charges",
+    "total_charges",
+    "support_tickets",
+    "num_products",
+    "internet_service",
+    "senior_citizen",
+    "churned"
+  ]
+}

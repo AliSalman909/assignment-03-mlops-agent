@@ -1,0 +1,27 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python training/preprocess.py --input data/raw/churn.csv --output-dir 
+      data/processed
+    deps:
+    - path: data/raw/churn.csv
+      hash: md5
+      md5: 43d9a0e1e27072f54279b3b20211be11
+      size: 201257
+    - path: training/preprocess.py
+      hash: md5
+      md5: c3baae2186a3bcae24395ace263590b4
+      size: 1887
+    outs:
+    - path: data/processed/stats.json
+      hash: md5
+      md5: a88a6a0652ca96492faac1603848211c
+      size: 388
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 4d92d1286ab840eb24eb41502e9083e0
+      size: 29381
+    - path: data/processed/train.csv
+      hash: md5
+      md5: b521176a1a4c958616fa946587c48138
+      size: 116844
