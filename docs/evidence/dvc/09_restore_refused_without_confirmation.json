@@ -1,9 +1,9 @@
 {
-  "tool": "dvc_restore_workspace",
+  "tool": "restore_dataset_workspace",
   "status": "confirmation_required",
-  "request_id": "3695cc172ae1",
-  "duration_ms": 0.13,
+  "request_id": "2829d7c546d5",
+  "duration_ms": 0.14,
   "data": null,
-  "error": "'dvc_restore_workspace' changes state and requires explicit user confirmation; nothing was executed",
+  "error": "'restore_dataset_workspace' changes state and requires explicit user confirmation; nothing was executed",
   "evidence_source": []
 }

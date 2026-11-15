@@ -1,8 +1,8 @@
 {
-  "tool": "dvc_check_changes",
+  "tool": "check_dataset_changes",
   "status": "ok",
-  "request_id": "62b6e1b89722",
-  "duration_ms": 2012.86,
+  "request_id": "85109bbf2cef",
+  "duration_ms": 2188.56,
   "data": {
     "data_changed": true,
     "workspace_changes": [

@@ -1,11 +1,11 @@
 {
-  "tool": "dvc_reproduce_instructions",
+  "tool": "explain_dataset_reproduction",
   "status": "ok",
-  "request_id": "c9f80a1d1827",
-  "duration_ms": 444.24,
+  "request_id": "d682eb85b9a6",
+  "duration_ms": 465.43,
   "data": {
     "path": "data/raw/churn.csv",
-    "revision": "data-v1.0",
+    "revision": "v1.0",
     "commit": "4ebc9ee898c55586f9f25163652ac56115f84ba9",
     "version": "v1.0",
     "version_tag": "data-v1.0",
@@ -40,7 +40,7 @@
     "non_destructive_alternative": {
       "purpose": "non-destructive copy without touching the workspace",
       "command": "dvc get . data/raw/churn.csv --rev 4ebc9ee8 -o artifacts/reproduced/4ebc9ee8/churn.csv",
-      "agent_tool": "dvc_materialize_version"
+      "agent_tool": "reproduce_dataset"
     },
     "downstream": "run `dvc repro` afterwards to rebuild pipeline outputs (data/processed)",
     "availability": {

@@ -8,6 +8,13 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
+try:  # load a local, git-ignored .env if python-dotenv is installed; real env vars take precedence
+    from dotenv import load_dotenv
+
+    load_dotenv(PROJECT_ROOT / ".env", override=False)
+except ImportError:  # pragma: no cover
+    pass
+
 
 def _env(name: str, default: str) -> str:
     return os.environ.get(name, default)
@@ -21,6 +28,10 @@ class Settings:
     reproduce_dir: str = field(default_factory=lambda: _env("DVC_REPRODUCE_DIR", "artifacts/reproduced"))
     default_dataset: str = field(default_factory=lambda: _env("DVC_DEFAULT_DATASET", "data/raw/churn.csv"))
     dataset_tag_prefix: str = field(default_factory=lambda: _env("DVC_DATASET_TAG_PREFIX", "data-"))
+
+    # LLM (Gemini). The key is only ever read from the environment / .env and never logged.
+    gemini_model: str = field(default_factory=lambda: _env("GEMINI_MODEL", "gemini-flash-lite-latest"))
+    gemini_api_key: str | None = field(default_factory=lambda: os.environ.get("GEMINI_API_KEY"), repr=False)
 
 
 def get_settings() -> Settings:

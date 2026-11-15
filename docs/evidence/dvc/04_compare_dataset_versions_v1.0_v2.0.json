@@ -1,12 +1,12 @@
 {
-  "tool": "dvc_compare_versions",
+  "tool": "compare_dataset_versions",
   "status": "ok",
-  "request_id": "de1fb0edda95",
-  "duration_ms": 2737.65,
+  "request_id": "73eeacf51ea5",
+  "duration_ms": 4331.57,
   "data": {
     "path": "data/raw/churn.csv",
     "a": {
-      "revision": "data-v1.0",
+      "revision": "v1.0",
       "commit": "4ebc9ee898c55586f9f25163652ac56115f84ba9",
       "md5": "43d9a0e1e27072f54279b3b20211be11",
       "size_bytes": 201257,
@@ -18,7 +18,7 @@
       ]
     },
     "b": {
-      "revision": "data-v2.0",
+      "revision": "v2.0",
       "commit": "e8f5aaf75a16c27d26e3b4bdf3bfd7000bd973a9",
       "md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
       "size_bytes": 313432,

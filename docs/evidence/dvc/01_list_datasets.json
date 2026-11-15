@@ -1,11 +1,11 @@
 {
-  "tool": "dvc_list_datasets",
+  "tool": "list_datasets",
   "status": "ok",
-  "request_id": "28b9240692d8",
-  "duration_ms": 88.01,
+  "request_id": "10b703e74392",
+  "duration_ms": 111.1,
   "data": {
     "revision": "HEAD",
-    "commit": "0fb9ea26b505fedcbe6ad0045370e36386685030",
+    "commit": "5031e3cef033f3705ba57f8a59bf8c01af7535dc",
     "count": 4,
     "datasets": [
       {
@@ -42,7 +42,7 @@
   },
   "error": null,
   "evidence_source": [
-    "git ls-tree 0fb9ea26",
+    "git ls-tree 5031e3ce",
     "*.dvc files",
     "dvc.lock"
   ]

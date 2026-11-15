@@ -63,16 +63,23 @@ version's bytes are pushed to the remote, so any of them can be restored exactly
 
 ## Task 1: DVC tools
 
-| Tool | Kind | What it does |
-|---|---|---|
-| `dvc_list_datasets` | read | datasets tracked at a revision (`.dvc` files + `dvc.lock` outputs) |
-| `dvc_get_dataset_version` | read | version label, md5, size, commit for a dataset at a revision; optional `expected_md5` provenance check |
-| `dvc_dataset_history` | read | every distinct version of a dataset with commits and tags |
-| `dvc_compare_versions` | read | hash/size diff, `dvc diff`, row/column/label-balance changes |
-| `dvc_check_changes` | read | workspace drift vs. committed version, stale pipeline stages, unpushed data |
-| `dvc_reproduce_instructions` | read | exact commands to restore a past version + cache/remote availability |
-| `dvc_materialize_version` | sandbox write | `dvc get` a past version into `artifacts/reproduced/<commit>/` and verify its md5 |
-| `dvc_restore_workspace` | **state-changing** | `dvc checkout` to discard local drift; **requires explicit confirmation** |
+All parameters are optional unless marked *required*. `dataset_path` defaults to `data/raw/churn.csv`;
+`git_commit` defaults to `HEAD`. Revision parameters accept a commit sha, a version label (`v1.1`),
+a tag (`data-v1.1`), or a branch.
+
+| Tool | Parameters | Kind | What it does |
+|---|---|---|---|
+| `list_datasets` | `git_commit` | read | datasets tracked at a revision (`.dvc` files + `dvc.lock` outputs) |
+| `get_dataset_version` | `dataset_path`, `git_commit`, `expected_md5` | read | version label, md5, size and git commit; optional provenance check against an md5 recorded in MLflow |
+| `get_dataset_history` | `dataset_path`, `max_entries` | read | every distinct version of a dataset with commits and tags |
+| `compare_dataset_versions` | `version_a` *(required)*, `version_b`, `dataset_path` | read | hash/size diff, `dvc diff`, row/column/label-balance changes |
+| `check_dataset_changes` | `check_remote` | read | workspace drift vs. committed version, stale pipeline stages, unpushed data |
+| `explain_dataset_reproduction` | `git_commit`, `dataset_path` | read | exact commands to restore a past version + cache/remote availability |
+| `reproduce_dataset` | `git_commit`, `dataset_path` | sandbox write | `dvc get` a past version from the remote into `artifacts/reproduced/<commit>/` and verify its md5 (workspace untouched) |
+| `restore_dataset_workspace` | `dataset_path` | **state-changing** | `dvc checkout` to discard local drift; **requires explicit confirmation** |
+
+Regenerate the report evidence (includes the injected tampering failure, always restores data):
+`bash scripts/collect_dvc_evidence.sh`
 
 **How a version is identified.** A dataset's version is not taken from the commit it is
 requested at. The tool reads the md5 recorded in the `.dvc` file (or `dvc.lock`) at that commit
@@ -96,11 +103,11 @@ dataset version trained experiment N?"*.
 
 ```bash
 python -m agent.cli list
-python -m agent.cli dvc_get_dataset_version '{"rev": "data-v1.1"}'
-python -m agent.cli dvc_compare_versions '{"rev_a": "data-v1.0", "rev_b": "data-v2.0"}'
-python -m agent.cli dvc_materialize_version '{"rev": "data-v1.0"}'
-python -m agent.cli dvc_check_changes
-python -m agent.cli dvc_restore_workspace '{}' --confirm
+python -m agent.cli get_dataset_version '{"git_commit": "v1.1"}'
+python -m agent.cli compare_dataset_versions '{"version_a": "v1.0", "version_b": "v2.0"}'
+python -m agent.cli reproduce_dataset '{"git_commit": "data-v1.0"}'
+python -m agent.cli check_dataset_changes
+python -m agent.cli restore_dataset_workspace '{}' --confirm
 ```
 
 (On PowerShell, wrap the JSON in single quotes and escape inner quotes as `\"`.)
@@ -108,7 +115,7 @@ python -m agent.cli dvc_restore_workspace '{}' --confirm
 ## Tests
 
 ```bash
-pytest -q        # 24 tests; builds a temporary git+DVC repo, external failures are mocked
+pytest -q        # 25 tests; builds a temporary git+DVC repo, external failures are mocked
 ruff check .
 ```
 
@@ -121,3 +128,7 @@ ruff check .
 | `DVC_REPRODUCE_DIR` | `artifacts/reproduced` | sandbox for materialized versions |
 | `DVC_DEFAULT_DATASET` | `data/raw/churn.csv` | dataset used when none is specified |
 | `DVC_DATASET_TAG_PREFIX` | `data-` | prefix of dataset version tags |
+| `GEMINI_API_KEY` | - | Gemini API key (put it in `.env`, which is git-ignored) |
+| `GEMINI_MODEL` | `gemini-flash-lite-latest` | model used by the agent |
+
+Copy `.env.example` to `.env` and fill in `GEMINI_API_KEY`.
