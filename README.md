@@ -69,6 +69,46 @@ curl -s localhost:8100/agent/query -H 'Content-Type: application/json' \
 curl -s localhost:8100/agent/confirm -H 'Content-Type: application/json' -d '{"action_id": "<id>"}'
 ```
 
+## Connecting the agent to your own systems
+
+Out of the box the agent talks to the **local demo stack** that `start.py` creates. Every connection is a
+setting in `.env`, which `start.py` creates from the documented [.env.example](.env.example). To use your
+own MLflow, Airflow, Kubernetes cluster or DVC project, edit `.env`. No code changes are needed.
+
+| System | Setting(s) in `.env` | Local demo value | Example for your own system |
+|---|---|---|---|
+| DVC project (datasets) | `MLOPS_REPO_ROOT` | *(empty = this folder)* | `C:/work/my-dvc-project` or `/home/me/my-dvc-project` |
+| | `DVC_DEFAULT_DATASET`, `DVC_DATASET_TAG_PREFIX` | `data/raw/churn.csv`, `data-` | your dataset path and version-tag prefix |
+| MLflow | `MLFLOW_TRACKING_URI` | `http://localhost:5000` | `https://mlflow.company.com` |
+| | `MLFLOW_TRACKING_USERNAME` / `_PASSWORD` / `_TOKEN` | *(unset)* | only if your server requires auth |
+| Airflow 3 | `AIRFLOW_BASE_URL` | `http://localhost:8080` | `https://airflow.company.com` |
+| | `AIRFLOW_USERNAME`, `AIRFLOW_ADMIN_PASSWORD` | `admin`, generated | an account allowed to use the REST API |
+| | `AIRFLOW_APPROVED_DAGS` | `churn_training_pipeline` | the DAG ids the agent may trigger |
+| Kubernetes | `K8S_KUBECONFIG` (+ optional `K8S_CONTEXT`) | `.secrets/agent.kubeconfig` | `C:/path/to/restricted.kubeconfig` (EKS, GKE, AKS, ...) |
+| | `K8S_NAMESPACE`, `K8S_APPROVED_NAMESPACES` | `mlops` | your application's namespace(s) |
+| | `K8S_MANAGED_LABEL` | `app.kubernetes.io/part-of=mlops-agent` | the label on Deployments the agent may restart/scale/roll back |
+| LLM | `GEMINI_API_KEY`, `GEMINI_MODEL` | *(your key)*, `gemini-flash-lite-latest` | any Gemini model id |
+
+Then start it **without** the local stack:
+
+```bash
+python start.py --external        # installs the venv, checks your systems are reachable, starts the chat
+python start.py --external --api  # same, but serves the HTTP API
+```
+
+`--external` starts nothing in Docker or kind. It reports which configured systems it can reach, and the
+agent reports any unreachable one as `unavailable` instead of guessing.
+
+**Recommendations for real systems**
+- **Kubernetes:** give the agent a **least-privilege** identity, not your admin kubeconfig.
+  [kubernetes/agent-rbac.yaml](kubernetes/agent-rbac.yaml) lists exactly the permissions it needs
+  (read pods/logs/services/events, patch Deployments) scoped to one namespace.
+- **API:** set `AGENT_API_KEY` if anyone besides you can reach the agent API.
+- **Names:** the tools' default names (DAG `churn_training_pipeline`, Deployment/Service `churn-api`) are
+  only used when a question doesn't name one. For your system, name them in the question
+  ("status of DAG `nightly_train`", "diagnose service `fraud-api`"), or ask a broad question first
+  ("list the DAGs") and the agent will pick up the real names.
+
 ## Repository layout
 
 ```

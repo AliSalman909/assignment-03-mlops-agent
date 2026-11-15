@@ -17,13 +17,17 @@ except ImportError:  # pragma: no cover
 
 
 def _env(name: str, default: str) -> str:
-    return os.environ.get(name, default)
+    """Value of an environment variable; unset OR empty (e.g. `MLOPS_REPO_ROOT=` in .env) means the default."""
+    return os.environ.get(name, "").strip() or default
 
 
 @dataclass(frozen=True)
 class Settings:
     # DVC
-    repo_root: Path = field(default_factory=lambda: Path(_env("MLOPS_REPO_ROOT", str(PROJECT_ROOT))).resolve())
+    # relative paths are resolved against the project folder, not the directory the agent is launched from
+    repo_root: Path = field(
+        default_factory=lambda: (PROJECT_ROOT / Path(_env("MLOPS_REPO_ROOT", str(PROJECT_ROOT))).expanduser()).resolve()
+    )
     dvc_timeout_s: float = field(default_factory=lambda: float(_env("DVC_TIMEOUT_S", "60")))
     reproduce_dir: str = field(default_factory=lambda: _env("DVC_REPRODUCE_DIR", "artifacts/reproduced"))
     default_dataset: str = field(default_factory=lambda: _env("DVC_DEFAULT_DATASET", "data/raw/churn.csv"))

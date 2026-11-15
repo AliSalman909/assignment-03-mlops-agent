@@ -6,6 +6,8 @@
     python start.py --status     only report the state of every component
     python start.py --setup-only set up, don't start the agent
     python start.py --no-k8s     skip the Kubernetes parts (the agent runs; k8s tools report "unavailable")
+    python start.py --external   use YOUR OWN MLflow / Airflow / Kubernetes / DVC project configured in .env
+                                 (starts nothing locally; only checks they are reachable, then starts the agent)
 
 Prerequisites (the script checks them): Python 3.11+, git, Docker (running), and for Kubernetes kubectl + kind.
 Uses only the Python standard library, so it runs before the virtualenv exists. Every step is idempotent:
@@ -337,6 +339,28 @@ def status(tools: dict[str, str]) -> None:
 
 
 # ----------------------------------------------------------------------------- main
+def check_external() -> None:
+    """--external: only verify that the systems configured in .env are reachable (nothing is started)."""
+    step("Your systems (as configured in .env)")
+    env = read_env()
+    mlflow = (env.get("MLFLOW_TRACKING_URI") or "http://localhost:5000").rstrip("/")
+    airflow = (env.get("AIRFLOW_BASE_URL") or "http://localhost:8080").rstrip("/")
+    repo = Path(env.get("MLOPS_REPO_ROOT") or ROOT)
+    repo = repo if repo.is_absolute() else ROOT / repo
+    kube = env.get("K8S_KUBECONFIG")
+    kube_path = (Path(kube) if Path(kube).is_absolute() else ROOT / kube) if kube else Path.home() / ".kube" / "config"
+    checks = [
+        (f"MLflow   {mlflow}", http_ok(f"{mlflow}/health")),
+        (f"Airflow  {airflow}", http_ok(f"{airflow}/api/v2/monitor/health")),
+        (f"DVC repo {repo}", (repo / ".dvc").is_dir() and (repo / ".git").exists()),
+        (f"kubeconfig {kube_path}", kube_path.is_file()),
+    ]
+    for label, good in checks:
+        print(f"    {'[ok]' if good else '[--]'} {label}")
+    if not all(good for _, good in checks):
+        warn("unreachable systems are not fatal: the agent reports their tools as 'unavailable' instead of guessing")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Set up and start the MLOps agent")
     ap.add_argument("--api", action="store_true", help="serve the HTTP API instead of the interactive chat")
@@ -344,6 +368,11 @@ def main() -> int:
     ap.add_argument("--status", action="store_true", help="only report component status")
     ap.add_argument("--setup-only", action="store_true", help="set everything up but don't start the agent")
     ap.add_argument("--no-k8s", action="store_true", help="skip Kubernetes setup")
+    ap.add_argument(
+        "--external",
+        action="store_true",
+        help="use YOUR OWN MLflow/Airflow/Kubernetes/DVC from .env: no docker, no kind, no demo data",
+    )
     args = ap.parse_args()
     os.chdir(ROOT)
 
@@ -351,17 +380,25 @@ def main() -> int:
         status({n: e for n in ("kubectl",) if (e := find_exe(n))})
         return 0
 
-    tools = check_prereqs(use_k8s=not args.no_k8s)
-    setup_venv()
-    setup_env(interactive=sys.stdin.isatty())
-    setup_data()
-    setup_services(tools["docker"])
-    if not args.no_k8s:
-        setup_kubernetes(tools)
-    status(tools)
+    if args.external:
+        if sys.version_info < (3, 11):  # noqa: UP036 - runs before the venv, possibly on an older Python
+            die(f"Python 3.11+ required (this is {sys.version.split()[0]})")
+        setup_venv()
+        setup_env(interactive=sys.stdin.isatty())
+        check_external()
+    else:
+        tools = check_prereqs(use_k8s=not args.no_k8s)
+        setup_venv()
+        setup_env(interactive=sys.stdin.isatty())
+        setup_data()
+        setup_services(tools["docker"])
+        if not args.no_k8s:
+            setup_kubernetes(tools)
+        status(tools)
 
     if args.setup_only:
-        print("\nSetup complete. Start the agent with:  python start.py   (or --api)")
+        mode = " --external" if args.external else ""
+        print(f"\nSetup complete. Start the agent with:  python start.py{mode}   (add --api for the HTTP API)")
         return 0
     env = {"MLFLOW_DISABLE_AGENT_HINT": "1"}
     if args.api:
