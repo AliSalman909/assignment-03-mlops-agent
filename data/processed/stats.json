@@ -1,10 +1,10 @@
 {
-  "raw_rows": 6060,
-  "duplicates_removed": 60,
+  "raw_rows": 6000,
+  "duplicates_removed": 0,
   "train_rows": 4800,
   "test_rows": 1200,
-  "n_features": 12,
-  "positive_rate": 0.2662,
+  "n_features": 13,
+  "positive_rate": 0.2298,
   "columns": [
     "customer_id",
     "tenure_months",
@@ -15,6 +15,7 @@
     "num_products",
     "internet_service",
     "senior_citizen",
+    "last_login_days",
     "churned"
   ]
 }

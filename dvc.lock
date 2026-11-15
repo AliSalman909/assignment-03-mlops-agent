@@ -6,8 +6,8 @@ stages:
     deps:
     - path: data/raw/churn.csv
       hash: md5
-      md5: 45d0f04af574f1b29a3867bf1fcae39c
-      size: 301695
+      md5: 9f6600f3d5da4d0ca84b02b9cb9199da
+      size: 313432
     - path: training/preprocess.py
       hash: md5
       md5: c3baae2186a3bcae24395ace263590b4
@@ -15,13 +15,13 @@ stages:
     outs:
     - path: data/processed/stats.json
       hash: md5
-      md5: db689d639928043f0d55629f562f017f
-      size: 389
+      md5: e95ba2b244f602d0fe3afb854236a50a
+      size: 412
     - path: data/processed/test.csv
       hash: md5
-      md5: 5b1238991e7942be96b3e92123b1bb15
-      size: 43946
+      md5: 0e4c363e92c08504830590d3fd748260
+      size: 46896
     - path: data/processed/train.csv
       hash: md5
-      md5: 0e2f2912e3ce3474cb3dd904957cad55
-      size: 175166
+      md5: 57e36676bdcf4559e4b35203c636a407
+      size: 186928
