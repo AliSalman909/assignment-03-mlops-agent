@@ -1,12 +1,12 @@
 {
-  "tool": "find_best_run",
+  "tool": "find_best_model",
   "status": "ok",
-  "request_id": "0b842cddcc9f",
-  "duration_ms": 5610.62,
+  "request_id": "b4b2cb07b8e8",
+  "duration_ms": 1965.5,
   "data": {
     "metric": "f1",
     "mode": "max",
-    "candidates_considered": 10,
+    "candidates_considered": 13,
     "best_run": {
       "run_id": "cedfcc5e39ef43f094152b920000b52d",
       "run_name": "logistic_regression-data-v2.0",
@@ -48,25 +48,25 @@
         "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da"
       },
       {
-        "run_id": "9f5fb01bf84c4c7fa9f981f3da8a895c",
+        "run_id": "35824c47d8c44f0697cdfa88906dc8b8",
         "run_name": "airflow-gradient_boosting",
         "model_type": "gradient_boosting",
         "f1": 0.497,
         "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da"
       },
       {
-        "run_id": "4c815512243241768e9d6ce68b071028",
-        "run_name": "random_forest-data-v2.0",
-        "model_type": "random_forest",
-        "f1": 0.4947,
+        "run_id": "db5f9b6305984215b8f5738ca07f9cd1",
+        "run_name": "airflow-gradient_boosting",
+        "model_type": "gradient_boosting",
+        "f1": 0.497,
         "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da"
       },
       {
-        "run_id": "d53d7934671e4824bb68d908cacae91d",
-        "run_name": "logistic_regression-data-v1.1",
-        "model_type": "logistic_regression",
-        "f1": 0.4707,
-        "dataset_md5": "45d0f04af574f1b29a3867bf1fcae39c"
+        "run_id": "2292b018c1894a049ae66a824dd33713",
+        "run_name": "airflow-gradient_boosting",
+        "model_type": "gradient_boosting",
+        "f1": 0.497,
+        "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da"
       }
     ],
     "assessment": {

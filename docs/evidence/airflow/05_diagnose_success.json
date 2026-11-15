@@ -1,11 +1,11 @@
 {
   "tool": "diagnose_dag_run",
   "status": "ok",
-  "request_id": "afcda03750d4",
-  "duration_ms": 461.83,
+  "request_id": "ce7c92383ac6",
+  "duration_ms": 234.97,
   "data": {
     "dag_id": "churn_training_pipeline",
-    "dag_run_id": "manual__2026-11-15T11:08:29.179045+00:00",
+    "run_id": "manual__2026-11-15T11:16:39.619199+00:00",
     "run_state": "success",
     "tasks": [
       {
@@ -45,7 +45,7 @@
   },
   "error": null,
   "evidence_source": [
-    "GET dagRuns/manual__2026-11-15T11:08:29.179045+00:00",
+    "GET dagRuns/manual__2026-11-15T11:16:39.619199+00:00",
     "GET taskInstances"
   ]
 }

@@ -1,16 +1,16 @@
 {
-  "tool": "trigger_dag",
+  "tool": "trigger_training_pipeline",
   "status": "ok",
-  "request_id": "c34f44cb13ad",
-  "duration_ms": 10481.02,
+  "request_id": "dd03e66389ec",
+  "duration_ms": 10362.92,
   "data": {
     "dag_id": "churn_training_pipeline",
-    "dag_run_id": "manual__2026-11-15T11:09:02.610408+00:00",
+    "run_id": "manual__2026-11-15T11:17:06.307358+00:00",
     "state": "failed",
     "run_type": "manual",
-    "start_date": "2026-11-15T11:09:03.910673Z",
-    "end_date": "2026-11-15T11:09:08.984067Z",
-    "duration_s": 5.073394,
+    "start_date": "2026-11-15T11:17:07.415982Z",
+    "end_date": "2026-11-15T11:17:11.532914Z",
+    "duration_s": 4.116932,
     "conf": {
       "inject_failure": "corrupt_data"
     },
@@ -25,9 +25,9 @@
         "state": "failed",
         "try_number": 1,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:09:04.075282Z",
-        "end_date": "2026-11-15T11:09:05.539021Z",
-        "duration_s": 1.464,
+        "start_date": "2026-11-15T11:17:07.546233Z",
+        "end_date": "2026-11-15T11:17:08.685672Z",
+        "duration_s": 1.14,
         "operator": "_PythonDecoratedOperator"
       },
       {
@@ -35,8 +35,8 @@
         "state": "upstream_failed",
         "try_number": 0,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:09:05.867797Z",
-        "end_date": "2026-11-15T11:09:05.867797Z",
+        "start_date": "2026-11-15T11:17:09.487694Z",
+        "end_date": "2026-11-15T11:17:09.487694Z",
         "duration_s": 0.0,
         "operator": "_PythonDecoratedOperator"
       },
@@ -45,8 +45,8 @@
         "state": "upstream_failed",
         "try_number": 0,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:09:05.871530Z",
-        "end_date": "2026-11-15T11:09:05.871530Z",
+        "start_date": "2026-11-15T11:17:09.488794Z",
+        "end_date": "2026-11-15T11:17:09.488794Z",
         "duration_s": 0.0,
         "operator": "_PythonDecoratedOperator"
       },
@@ -55,8 +55,8 @@
         "state": "upstream_failed",
         "try_number": 0,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:09:06.910925Z",
-        "end_date": "2026-11-15T11:09:06.910925Z",
+        "start_date": "2026-11-15T11:17:09.613128Z",
+        "end_date": "2026-11-15T11:17:09.613128Z",
         "duration_s": 0.0,
         "operator": "_PythonDecoratedOperator"
       },
@@ -65,8 +65,8 @@
         "state": "upstream_failed",
         "try_number": 0,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:09:06.912127Z",
-        "end_date": "2026-11-15T11:09:06.912127Z",
+        "start_date": "2026-11-15T11:17:09.614267Z",
+        "end_date": "2026-11-15T11:17:09.614267Z",
         "duration_s": 0.0,
         "operator": "_PythonDecoratedOperator"
       },
@@ -75,8 +75,8 @@
         "state": "upstream_failed",
         "try_number": 0,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:09:07.945301Z",
-        "end_date": "2026-11-15T11:09:07.945301Z",
+        "start_date": "2026-11-15T11:17:10.636427Z",
+        "end_date": "2026-11-15T11:17:10.636427Z",
         "duration_s": 0.0,
         "operator": "_PythonDecoratedOperator"
       }

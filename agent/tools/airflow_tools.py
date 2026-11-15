@@ -4,7 +4,7 @@ Tools
   list_dags            DAGs with paused state, tags and whether the agent may trigger them
   get_dag_runs         recent runs of a DAG with state, timing and conf
   get_dag_run_status   one run (default: latest) with per-task states; can wait for completion
-  trigger_dag          STATE-CHANGING: start an approved DAG (requires confirmation + allow-list)
+  trigger_training_pipeline  STATE-CHANGING: start an approved DAG (requires confirmation + allow-list)
   get_failed_tasks     failed / upstream_failed tasks of a run, with attempt counts
   get_task_logs        log tail of a task attempt (redacted)
   diagnose_dag_run     root-cause analysis: failing task, error excerpt, failure layer, retries, next steps
@@ -108,17 +108,17 @@ class DagRunsInput(BaseModel):
 
 class DagRunRefInput(BaseModel):
     dag_id: str = Field("churn_training_pipeline")
-    dag_run_id: str | None = Field(None, description="Run id; omit for the most recent run")
+    run_id: str | None = Field(None, description="DAG run id; omit for the most recent run")
 
     @field_validator("dag_id")
     @classmethod
     def v_dag(cls, v: str) -> str:
         return _check_id(v, "dag_id")
 
-    @field_validator("dag_run_id")
+    @field_validator("run_id")
     @classmethod
     def v_run(cls, v: str | None) -> str | None:
-        return v if v is None else _check_id(v, "dag_run_id")
+        return v if v is None else _check_id(v, "run_id")
 
 
 class DagRunStatusInput(DagRunRefInput):
@@ -127,7 +127,7 @@ class DagRunStatusInput(DagRunRefInput):
 
 class TriggerDagInput(BaseModel):
     dag_id: str = Field("churn_training_pipeline")
-    conf: dict[str, Any] = Field(
+    config: dict[str, Any] = Field(
         default_factory=dict, description=f"Run parameters; allowed keys: {sorted(ALLOWED_CONF_KEYS)}"
     )
     wait_seconds: int = Field(0, ge=0, le=900, description="Wait for the run to finish and report the outcome")
@@ -137,15 +137,15 @@ class TriggerDagInput(BaseModel):
     def v_dag(cls, v: str) -> str:
         return _check_id(v, "dag_id")
 
-    @field_validator("conf")
+    @field_validator("config")
     @classmethod
     def v_conf(cls, v: dict[str, Any]) -> dict[str, Any]:
         unknown = set(v) - ALLOWED_CONF_KEYS
         if unknown:
-            raise ValueError(f"conf keys not allowed: {sorted(unknown)}")
+            raise ValueError(f"config keys not allowed: {sorted(unknown)}")
         for k, val in v.items():
             if not isinstance(val, str | int | float | bool) or (isinstance(val, str) and len(val) > 200):
-                raise ValueError(f"conf value for '{k}' must be a short scalar")
+                raise ValueError(f"config value for '{k}' must be a short scalar")
         return v
 
 
@@ -232,7 +232,7 @@ class AirflowTools:
     @staticmethod
     def _run_summary(r: dict[str, Any]) -> dict[str, Any]:
         return {
-            "dag_run_id": r.get("dag_run_id"),
+            "run_id": r.get("dag_run_id"),
             "state": r.get("state"),
             "run_type": r.get("run_type"),
             "start_date": r.get("start_date"),
@@ -299,7 +299,8 @@ class AirflowTools:
                             lines.append(f"    {err.get('exc_type')}: {err.get('exc_value')}")
                 else:
                     lines.append(str(item))
-        return [redact(ln) for ln in lines if ln.strip()]
+        # drop Airflow UI grouping markers (::group:: / ::endgroup::) - noise for diagnosis
+        return [redact(ln) for ln in lines if ln.strip() and "::group::" not in ln and "::endgroup::" not in ln]
 
     def _wait(self, dag_id: str, run_id: str, wait_seconds: int) -> tuple[dict[str, Any], bool]:
         deadline = time.monotonic() + wait_seconds
@@ -349,7 +350,7 @@ class AirflowTools:
         )
 
     def get_dag_run_status(self, p: DagRunStatusInput) -> ToolOutput:
-        run = self._resolve_run(p.dag_id, p.dag_run_id)
+        run = self._resolve_run(p.dag_id, p.run_id)
         finished = None
         if p.wait_seconds:
             run, finished = self._wait(p.dag_id, run["dag_run_id"], p.wait_seconds)
@@ -358,7 +359,7 @@ class AirflowTools:
             evidence_source=[f"GET dagRuns/{run['dag_run_id']}", "GET taskInstances"],
         )
 
-    def trigger_dag(self, p: TriggerDagInput) -> ToolOutput:
+    def trigger_training_pipeline(self, p: TriggerDagInput) -> ToolOutput:
         if p.dag_id not in self.settings.airflow_approved_dags:
             raise ToolForbiddenError(
                 f"DAG '{p.dag_id}' is not on the approved list {list(self.settings.airflow_approved_dags)}"
@@ -369,7 +370,7 @@ class AirflowTools:
         run = self.api.request(
             "POST",
             f"/api/v2/dags/{quote(p.dag_id)}/dagRuns",
-            json={"logical_date": None, "conf": p.conf, "note": "triggered by MLOps agent after user confirmation"},
+            json={"logical_date": None, "conf": p.config, "note": "triggered by MLOps agent after user confirmation"},
         )
         sources = [f"POST /api/v2/dags/{p.dag_id}/dagRuns"]
         if p.wait_seconds:
@@ -382,14 +383,14 @@ class AirflowTools:
         return ToolOutput(data=data, evidence_source=sources)
 
     def get_failed_tasks(self, p: DagRunRefInput) -> ToolOutput:
-        run = self._resolve_run(p.dag_id, p.dag_run_id)
+        run = self._resolve_run(p.dag_id, p.run_id)
         tasks = self._tasks(p.dag_id, run["dag_run_id"])
         failed = [t for t in tasks if t["state"] == "failed"]
         blocked = [t for t in tasks if t["state"] in ("upstream_failed", "skipped")]
         return ToolOutput(
             data={
                 "dag_id": p.dag_id,
-                "dag_run_id": run["dag_run_id"],
+                "run_id": run["dag_run_id"],
                 "run_state": run.get("state"),
                 "failed_tasks": failed,
                 "blocked_downstream_tasks": blocked,
@@ -403,7 +404,7 @@ class AirflowTools:
         )
 
     def get_task_logs(self, p: TaskLogsInput) -> ToolOutput:
-        run = self._resolve_run(p.dag_id, p.dag_run_id)
+        run = self._resolve_run(p.dag_id, p.run_id)
         try_number = p.try_number
         if try_number is None:
             task = next((t for t in self._tasks(p.dag_id, run["dag_run_id"]) if t["task_id"] == p.task_id), None)
@@ -414,7 +415,7 @@ class AirflowTools:
         return ToolOutput(
             data={
                 "dag_id": p.dag_id,
-                "dag_run_id": run["dag_run_id"],
+                "run_id": run["dag_run_id"],
                 "task_id": p.task_id,
                 "try_number": try_number,
                 "total_lines": len(lines),
@@ -424,14 +425,14 @@ class AirflowTools:
         )
 
     def diagnose_dag_run(self, p: DagRunRefInput) -> ToolOutput:
-        run = self._resolve_run(p.dag_id, p.dag_run_id)
+        run = self._resolve_run(p.dag_id, p.run_id)
         run_id = run["dag_run_id"]
         tasks = self._tasks(p.dag_id, run_id)
         failed = [t for t in tasks if t["state"] == "failed"]
         retried_ok = [t for t in tasks if (t["try_number"] or 0) > 1 and t["state"] == "success"]
         data: dict[str, Any] = {
             "dag_id": p.dag_id,
-            "dag_run_id": run_id,
+            "run_id": run_id,
             "run_state": run.get("state"),
             "tasks": [{k: t[k] for k in ("task_id", "state", "try_number")} for t in tasks],
         }
@@ -512,9 +513,9 @@ def register_airflow_tools(registry: ToolRegistry, tools: AirflowTools | None = 
             "to poll until it finishes.",
         ),
         (
-            "trigger_dag",
+            "trigger_training_pipeline",
             TriggerDagInput,
-            t.trigger_dag,
+            t.trigger_training_pipeline,
             True,
             "STATE-CHANGING: trigger an approved DAG (e.g. the training pipeline). Requires explicit user "
             "confirmation; never call it just because retraining might help. Set wait_seconds to report the outcome.",

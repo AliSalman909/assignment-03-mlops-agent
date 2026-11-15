@@ -1,11 +1,11 @@
 {
   "tool": "diagnose_dag_run",
   "status": "ok",
-  "request_id": "a01278e33ba2",
-  "duration_ms": 324.6,
+  "request_id": "a786bc189b05",
+  "duration_ms": 243.02,
   "data": {
     "dag_id": "churn_training_pipeline",
-    "dag_run_id": "manual__2026-11-15T11:09:17.472885+00:00",
+    "run_id": "manual__2026-11-15T11:17:19.618264+00:00",
     "run_state": "failed",
     "tasks": [
       {
@@ -47,7 +47,7 @@
         "explanation": "the trained model did not meet the quality thresholds",
         "recommended_action": "compare against previous runs in MLflow; do not promote; tune features/hyper-parameters or check data drift",
         "evidence": [
-          "2026-11-15T11:09:40.933607Z ERROR Task failed with exception",
+          "2026-11-15T11:17:37.321644Z ERROR Task failed with exception",
           "    AirflowFailException: QUALITY_GATE_FAILED: f1 0.4970 < min_f1 0.6"
         ]
       }
@@ -60,7 +60,7 @@
   },
   "error": null,
   "evidence_source": [
-    "GET dagRuns/manual__2026-11-15T11:09:17.472885+00:00",
+    "GET dagRuns/manual__2026-11-15T11:17:19.618264+00:00",
     "GET taskInstances",
     "GET logs quality_gate#1"
   ]

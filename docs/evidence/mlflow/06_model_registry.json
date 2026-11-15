@@ -1,24 +1,78 @@
 {
-  "tool": "get_model_registry_info",
+  "tool": "get_model_versions",
   "status": "ok",
-  "request_id": "6c903e6f6d6b",
-  "duration_ms": 3031.59,
+  "request_id": "e431025c76fd",
+  "duration_ms": 1951.97,
   "data": {
     "count": 1,
     "registered_models": [
       {
         "name": "churn-classifier",
         "aliases": {
-          "candidate": "2",
+          "candidate": "4",
           "champion": "1"
         },
-        "latest_version": "2",
+        "latest_version": "4",
         "versions": [
           {
-            "version": "2",
+            "version": "4",
             "aliases": [
               "candidate"
             ],
+            "status": "READY",
+            "source_run_id": "35824c47d8c44f0697cdfa88906dc8b8",
+            "created": "2026-11-15T11:10:21.340000+00:00",
+            "description": "Passed automated quality gate. Awaiting human review before promotion to 'champion'.",
+            "tags": {
+              "quality_gate": "passed",
+              "source_run_id": "35824c47d8c44f0697cdfa88906dc8b8"
+            },
+            "metrics": {
+              "f1": 0.497,
+              "precision": 0.4289,
+              "recall": 0.5906,
+              "accuracy": 0.725,
+              "roc_auc": 0.7282
+            },
+            "provenance": {
+              "git_commit": "be063f5d8bac387fc0b11e48442d28a290aa1bd8",
+              "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+              "dataset_path": "data/raw/churn.csv",
+              "dataset_version": "unresolved",
+              "source": "airflow",
+              "quality_gate": "passed"
+            }
+          },
+          {
+            "version": "3",
+            "aliases": [],
+            "status": "READY",
+            "source_run_id": "2292b018c1894a049ae66a824dd33713",
+            "created": "2026-11-15T11:08:56.300000+00:00",
+            "description": "Passed automated quality gate. Awaiting human review before promotion to 'champion'.",
+            "tags": {
+              "quality_gate": "passed",
+              "source_run_id": "2292b018c1894a049ae66a824dd33713"
+            },
+            "metrics": {
+              "f1": 0.497,
+              "precision": 0.4289,
+              "recall": 0.5906,
+              "accuracy": 0.725,
+              "roc_auc": 0.7282
+            },
+            "provenance": {
+              "git_commit": "be063f5d8bac387fc0b11e48442d28a290aa1bd8",
+              "dataset_md5": "9f6600f3d5da4d0ca84b02b9cb9199da",
+              "dataset_path": "data/raw/churn.csv",
+              "dataset_version": "unresolved",
+              "source": "airflow",
+              "quality_gate": "passed"
+            }
+          },
+          {
+            "version": "2",
+            "aliases": [],
             "status": "READY",
             "source_run_id": "9f5fb01bf84c4c7fa9f981f3da8a895c",
             "created": "2026-11-15T11:07:24.502000+00:00",

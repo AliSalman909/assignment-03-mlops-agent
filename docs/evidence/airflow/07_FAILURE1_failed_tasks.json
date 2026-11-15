@@ -1,11 +1,11 @@
 {
   "tool": "get_failed_tasks",
   "status": "ok",
-  "request_id": "63e977ec3437",
-  "duration_ms": 356.11,
+  "request_id": "5fbed91c0b0f",
+  "duration_ms": 276.12,
   "data": {
     "dag_id": "churn_training_pipeline",
-    "dag_run_id": "manual__2026-11-15T11:09:02.610408+00:00",
+    "run_id": "manual__2026-11-15T11:17:06.307358+00:00",
     "run_state": "failed",
     "failed_tasks": [
       {
@@ -13,9 +13,9 @@
         "state": "failed",
         "try_number": 1,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:09:04.075282Z",
-        "end_date": "2026-11-15T11:09:05.539021Z",
-        "duration_s": 1.464,
+        "start_date": "2026-11-15T11:17:07.546233Z",
+        "end_date": "2026-11-15T11:17:08.685672Z",
+        "duration_s": 1.14,
         "operator": "_PythonDecoratedOperator"
       }
     ],
@@ -25,8 +25,8 @@
         "state": "upstream_failed",
         "try_number": 0,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:09:05.867797Z",
-        "end_date": "2026-11-15T11:09:05.867797Z",
+        "start_date": "2026-11-15T11:17:09.487694Z",
+        "end_date": "2026-11-15T11:17:09.487694Z",
         "duration_s": 0.0,
         "operator": "_PythonDecoratedOperator"
       },
@@ -35,8 +35,8 @@
         "state": "upstream_failed",
         "try_number": 0,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:09:05.871530Z",
-        "end_date": "2026-11-15T11:09:05.871530Z",
+        "start_date": "2026-11-15T11:17:09.488794Z",
+        "end_date": "2026-11-15T11:17:09.488794Z",
         "duration_s": 0.0,
         "operator": "_PythonDecoratedOperator"
       },
@@ -45,8 +45,8 @@
         "state": "upstream_failed",
         "try_number": 0,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:09:06.910925Z",
-        "end_date": "2026-11-15T11:09:06.910925Z",
+        "start_date": "2026-11-15T11:17:09.613128Z",
+        "end_date": "2026-11-15T11:17:09.613128Z",
         "duration_s": 0.0,
         "operator": "_PythonDecoratedOperator"
       },
@@ -55,8 +55,8 @@
         "state": "upstream_failed",
         "try_number": 0,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:09:06.912127Z",
-        "end_date": "2026-11-15T11:09:06.912127Z",
+        "start_date": "2026-11-15T11:17:09.614267Z",
+        "end_date": "2026-11-15T11:17:09.614267Z",
         "duration_s": 0.0,
         "operator": "_PythonDecoratedOperator"
       },
@@ -65,8 +65,8 @@
         "state": "upstream_failed",
         "try_number": 0,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:09:07.945301Z",
-        "end_date": "2026-11-15T11:09:07.945301Z",
+        "start_date": "2026-11-15T11:17:10.636427Z",
+        "end_date": "2026-11-15T11:17:10.636427Z",
         "duration_s": 0.0,
         "operator": "_PythonDecoratedOperator"
       }
@@ -75,6 +75,6 @@
   },
   "error": null,
   "evidence_source": [
-    "GET dagRuns/manual__2026-11-15T11:09:02.610408+00:00/taskInstances"
+    "GET dagRuns/manual__2026-11-15T11:17:06.307358+00:00/taskInstances"
   ]
 }

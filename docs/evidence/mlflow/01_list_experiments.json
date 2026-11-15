@@ -1,8 +1,8 @@
 {
   "tool": "list_experiments",
   "status": "ok",
-  "request_id": "b8b1eb8ade49",
-  "duration_ms": 4925.45,
+  "request_id": "b46374c996f6",
+  "duration_ms": 2158.2,
   "data": {
     "tracking_uri": "http://localhost:5000",
     "count": 3,
@@ -11,7 +11,7 @@
         "experiment_id": "2",
         "name": "churn-training-pipeline",
         "lifecycle_stage": "active",
-        "num_runs": 1,
+        "num_runs": 4,
         "last_update_time": "2026-11-15T11:07:09.495000+00:00"
       },
       {

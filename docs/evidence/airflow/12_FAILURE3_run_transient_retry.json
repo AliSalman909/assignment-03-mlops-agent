@@ -1,16 +1,16 @@
 {
-  "tool": "trigger_dag",
+  "tool": "trigger_training_pipeline",
   "status": "ok",
-  "request_id": "069a6b563173",
-  "duration_ms": 40708.07,
+  "request_id": "30187f3d30c1",
+  "duration_ms": 35528.47,
   "data": {
     "dag_id": "churn_training_pipeline",
-    "dag_run_id": "manual__2026-11-15T11:09:45.641467+00:00",
+    "run_id": "manual__2026-11-15T11:17:41.435627+00:00",
     "state": "success",
     "run_type": "manual",
-    "start_date": "2026-11-15T11:09:46.387048Z",
-    "end_date": "2026-11-15T11:10:22.873127Z",
-    "duration_s": 36.486079,
+    "start_date": "2026-11-15T11:17:42.614032Z",
+    "end_date": "2026-11-15T11:18:14.788743Z",
+    "duration_s": 32.174711,
     "conf": {
       "inject_failure": "transient_error"
     },
@@ -24,9 +24,9 @@
         "state": "success",
         "try_number": 1,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:09:46.626038Z",
-        "end_date": "2026-11-15T11:09:48.384597Z",
-        "duration_s": 1.759,
+        "start_date": "2026-11-15T11:17:42.641411Z",
+        "end_date": "2026-11-15T11:17:43.800550Z",
+        "duration_s": 1.16,
         "operator": "_PythonDecoratedOperator"
       },
       {
@@ -34,9 +34,9 @@
         "state": "success",
         "try_number": 2,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:10:00.360900Z",
-        "end_date": "2026-11-15T11:10:02.019940Z",
-        "duration_s": 1.659,
+        "start_date": "2026-11-15T11:17:55.955153Z",
+        "end_date": "2026-11-15T11:17:57.148088Z",
+        "duration_s": 1.193,
         "operator": "_PythonDecoratedOperator"
       },
       {
@@ -44,9 +44,9 @@
         "state": "success",
         "try_number": 1,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:10:02.758122Z",
-        "end_date": "2026-11-15T11:10:05.577780Z",
-        "duration_s": 2.82,
+        "start_date": "2026-11-15T11:17:58.029056Z",
+        "end_date": "2026-11-15T11:18:00.233788Z",
+        "duration_s": 2.205,
         "operator": "_PythonDecoratedOperator"
       },
       {
@@ -54,9 +54,9 @@
         "state": "success",
         "try_number": 1,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:10:05.741658Z",
-        "end_date": "2026-11-15T11:10:15.065783Z",
-        "duration_s": 9.324,
+        "start_date": "2026-11-15T11:18:00.983509Z",
+        "end_date": "2026-11-15T11:18:08.409475Z",
+        "duration_s": 7.425,
         "operator": "_PythonDecoratedOperator"
       },
       {
@@ -64,9 +64,9 @@
         "state": "success",
         "try_number": 1,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:10:16.052696Z",
-        "end_date": "2026-11-15T11:10:18.549102Z",
-        "duration_s": 2.496,
+        "start_date": "2026-11-15T11:18:08.626894Z",
+        "end_date": "2026-11-15T11:18:10.530831Z",
+        "duration_s": 1.904,
         "operator": "_PythonDecoratedOperator"
       },
       {
@@ -74,9 +74,9 @@
         "state": "success",
         "try_number": 1,
         "max_tries": 2,
-        "start_date": "2026-11-15T11:10:18.963705Z",
-        "end_date": "2026-11-15T11:10:22.326664Z",
-        "duration_s": 3.363,
+        "start_date": "2026-11-15T11:18:11.055522Z",
+        "end_date": "2026-11-15T11:18:13.888165Z",
+        "duration_s": 2.832,
         "operator": "_PythonDecoratedOperator"
       }
     ],

@@ -1,18 +1,64 @@
 {
   "tool": "get_dag_runs",
   "status": "ok",
-  "request_id": "d7db02ffcbe6",
-  "duration_ms": 279.43,
+  "request_id": "1b3bba662f11",
+  "duration_ms": 238.27,
   "data": {
     "dag_id": "churn_training_pipeline",
-    "count": 5,
+    "count": 9,
     "state_counts": {
-      "success": 3,
-      "failed": 2
+      "success": 5,
+      "failed": 4
     },
     "runs": [
       {
-        "dag_run_id": "manual__2026-11-15T11:09:45.641467+00:00",
+        "run_id": "manual__2026-11-15T11:17:41.435627+00:00",
+        "state": "success",
+        "run_type": "manual",
+        "start_date": "2026-11-15T11:17:42.614032Z",
+        "end_date": "2026-11-15T11:18:14.788743Z",
+        "duration_s": 32.174711,
+        "conf": {
+          "inject_failure": "transient_error"
+        },
+        "note": "triggered by MLOps agent after user confirmation"
+      },
+      {
+        "run_id": "manual__2026-11-15T11:17:19.618264+00:00",
+        "state": "failed",
+        "run_type": "manual",
+        "start_date": "2026-11-15T11:17:20.400832Z",
+        "end_date": "2026-11-15T11:17:38.623743Z",
+        "duration_s": 18.222911,
+        "conf": {
+          "min_f1": 0.6
+        },
+        "note": "triggered by MLOps agent after user confirmation"
+      },
+      {
+        "run_id": "manual__2026-11-15T11:17:06.307358+00:00",
+        "state": "failed",
+        "run_type": "manual",
+        "start_date": "2026-11-15T11:17:07.415982Z",
+        "end_date": "2026-11-15T11:17:11.532914Z",
+        "duration_s": 4.116932,
+        "conf": {
+          "inject_failure": "corrupt_data"
+        },
+        "note": "triggered by MLOps agent after user confirmation"
+      },
+      {
+        "run_id": "manual__2026-11-15T11:16:39.619199+00:00",
+        "state": "success",
+        "run_type": "manual",
+        "start_date": "2026-11-15T11:16:40.493065Z",
+        "end_date": "2026-11-15T11:17:00.596996Z",
+        "duration_s": 20.103931,
+        "conf": {},
+        "note": "triggered by MLOps agent after user confirmation"
+      },
+      {
+        "run_id": "manual__2026-11-15T11:09:45.641467+00:00",
         "state": "success",
         "run_type": "manual",
         "start_date": "2026-11-15T11:09:46.387048Z",
@@ -24,7 +70,7 @@
         "note": "triggered by MLOps agent after user confirmation"
       },
       {
-        "dag_run_id": "manual__2026-11-15T11:09:17.472885+00:00",
+        "run_id": "manual__2026-11-15T11:09:17.472885+00:00",
         "state": "failed",
         "run_type": "manual",
         "start_date": "2026-11-15T11:09:18.161792Z",
@@ -36,7 +82,7 @@
         "note": "triggered by MLOps agent after user confirmation"
       },
       {
-        "dag_run_id": "manual__2026-11-15T11:09:02.610408+00:00",
+        "run_id": "manual__2026-11-15T11:09:02.610408+00:00",
         "state": "failed",
         "run_type": "manual",
         "start_date": "2026-11-15T11:09:03.910673Z",
@@ -48,7 +94,7 @@
         "note": "triggered by MLOps agent after user confirmation"
       },
       {
-        "dag_run_id": "manual__2026-11-15T11:08:29.179045+00:00",
+        "run_id": "manual__2026-11-15T11:08:29.179045+00:00",
         "state": "success",
         "run_type": "manual",
         "start_date": "2026-11-15T11:08:30.417954Z",
@@ -58,7 +104,7 @@
         "note": "triggered by MLOps agent after user confirmation"
       },
       {
-        "dag_run_id": "manual__2026-11-15T11:06:50.682165+00:00",
+        "run_id": "manual__2026-11-15T11:06:50.682165+00:00",
         "state": "success",
         "run_type": "manual",
         "start_date": "2026-11-15T11:06:51.681975Z",

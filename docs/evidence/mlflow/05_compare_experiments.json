@@ -1,8 +1,8 @@
 {
   "tool": "compare_experiments",
   "status": "ok",
-  "request_id": "ad4cd322892f",
-  "duration_ms": 3536.68,
+  "request_id": "ea7937187bb1",
+  "duration_ms": 1939.06,
   "data": {
     "metric": "f1",
     "experiments": [
@@ -49,18 +49,18 @@
       {
         "experiment": "churn-training-pipeline",
         "experiment_id": "2",
-        "finished_runs": 1,
-        "runs_with_metric": 1,
+        "finished_runs": 4,
+        "runs_with_metric": 4,
         "best_f1": 0.497,
         "mean_f1": 0.497,
-        "std_f1": null,
+        "std_f1": 0.0,
         "best_run": {
-          "run_id": "9f5fb01bf84c4c7fa9f981f3da8a895c",
+          "run_id": "35824c47d8c44f0697cdfa88906dc8b8",
           "run_name": "airflow-gradient_boosting",
           "experiment_id": "2",
           "experiment_name": "churn-training-pipeline",
           "status": "FINISHED",
-          "start_time": "2026-11-15T11:07:09.862000+00:00",
+          "start_time": "2026-11-15T11:10:07.830000+00:00",
           "model_type": "gradient_boosting",
           "metrics": {
             "f1": 0.497,
@@ -79,7 +79,7 @@
             "quality_gate": "passed"
           }
         },
-        "latest_run_start": "2026-11-15T11:07:09.862000+00:00",
+        "latest_run_start": "2026-11-15T11:10:07.830000+00:00",
         "model_types": [
           "gradient_boosting"
         ]

@@ -5,12 +5,12 @@ create runs, register models or move aliases - promotion is a human/pipeline dec
 
 Tools
   list_experiments        experiments with run counts
-  list_runs               recent runs with metrics, params and provenance tags
+  list_training_runs             recent runs with metrics, params and provenance tags
   get_run_details         one run: metrics, params, tags, artifacts, registered versions
-  find_best_run           best run by a metric + an explicit production-readiness assessment
-  compare_runs            side-by-side comparison of given runs (or the last N) with a recommendation
+  find_best_model         best run by a metric + an explicit production-readiness assessment
+  compare_model_runs      side-by-side comparison of given runs (or the last N) with a recommendation
   compare_experiments     aggregate comparison of two or more experiments
-  get_model_registry_info registered models, versions, aliases (champion/candidate) and source runs
+  get_model_versions      registered models, versions, aliases (champion/candidate) and source runs
 
 Why the readiness assessment: the highest metric is *not* evidence of production readiness.
 Every recommendation reports the margin over the runner-up, trade-offs on other metrics, the
@@ -65,13 +65,15 @@ class ListExperimentsInput(BaseModel):
 
 
 class ListRunsInput(BaseModel):
-    experiment_name: str | None = Field(None, description="Experiment to search; omit for all experiments")
-    max_results: int = Field(10, ge=1, le=100)
+    experiment_id: str | None = Field(
+        None, description="Experiment id (e.g. '1') or name (e.g. 'churn-baseline'); omit for all experiments"
+    )
+    limit: int = Field(10, ge=1, le=100, description="Maximum number of runs, newest first")
     filter_string: str | None = Field(
-        None, description="MLflow search filter, e.g. \"metrics.f1 > 0.6 and tags.source = 'airflow'\""
+        None, description="Optional MLflow search filter, e.g. \"metrics.f1 > 0.5 and tags.source = 'airflow'\""
     )
 
-    check_name = field_validator("experiment_name")(lambda cls, v: v if v is None else _check_name(v))
+    check_name = field_validator("experiment_id")(lambda cls, v: v if v is None else _check_name(v))
 
     @field_validator("filter_string")
     @classmethod
@@ -94,30 +96,31 @@ class GetRunDetailsInput(BaseModel):
 
 
 class FindBestRunInput(BaseModel):
+    experiment_id: str | None = Field(None, description="Experiment id or name; omit to search all experiments")
     metric: str = Field("f1", description="Evaluation metric to rank by")
-    experiment_names: list[str] | None = Field(None, description="Experiments to consider; omit for all")
-    mode: str | None = Field(None, description="'max' or 'min'; inferred for known metrics")
+    order: str | None = Field(
+        None, description="'max'/'DESC' (higher is better) or 'min'/'ASC'; inferred for known metrics"
+    )
     max_candidates: int = Field(50, ge=1, le=500)
 
     check_metric = field_validator("metric")(lambda cls, v: _check_metric(v))
+    check_name = field_validator("experiment_id")(lambda cls, v: v if v is None else _check_name(v))
 
-    @field_validator("experiment_names")
+    @field_validator("order")
     @classmethod
-    def _v_names(cls, v: list[str] | None) -> list[str] | None:
-        return v if v is None else [_check_name(n) for n in v]
-
-    @field_validator("mode")
-    @classmethod
-    def _v_mode(cls, v: str | None) -> str | None:
-        if v is not None and v not in ("max", "min"):
-            raise ValueError("mode must be 'max' or 'min'")
-        return v
+    def _v_order(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        norm = {"max": "max", "desc": "max", "min": "min", "asc": "min"}.get(v.strip().lower())
+        if norm is None:
+            raise ValueError("order must be 'max'/'DESC' or 'min'/'ASC'")
+        return norm
 
 
 class CompareRunsInput(BaseModel):
     run_ids: list[str] | None = Field(None, description="Specific run ids to compare (2-20)")
     last_n: int = Field(5, ge=2, le=20, description="Used when run_ids is omitted: compare the N most recent runs")
-    experiment_name: str | None = Field(None, description="Restrict last_n to one experiment")
+    experiment_id: str | None = Field(None, description="Restrict last_n to one experiment (id or name)")
     metric: str = Field("f1", description="Metric used for the recommendation")
 
     check_metric = field_validator("metric")(lambda cls, v: _check_metric(v))
@@ -133,12 +136,12 @@ class CompareRunsInput(BaseModel):
 
 
 class CompareExperimentsInput(BaseModel):
-    experiment_names: list[str] = Field(..., min_length=2, max_length=10)
+    experiment_ids: list[str] = Field(..., min_length=2, max_length=10, description="Experiment ids or names")
     metric: str = Field("f1")
 
     check_metric = field_validator("metric")(lambda cls, v: _check_metric(v))
 
-    @field_validator("experiment_names")
+    @field_validator("experiment_ids")
     @classmethod
     def _v_names(cls, v: list[str]) -> list[str]:
         return [_check_name(n) for n in v]
@@ -196,8 +199,10 @@ class MLflowTools:
             exps = self._call(self.client.search_experiments)
             return {e.experiment_id: e.name for e in exps}
         out = {}
-        for n in names:
-            exp = self._call(self.client.get_experiment_by_name, n)
+        for n in names:  # each entry may be an experiment id ("25") or a name ("churn-baseline")
+            exp = self._call(self.client.get_experiment, n) if n.isdigit() else None
+            if exp is None:
+                exp = self._call(self.client.get_experiment_by_name, n)
             if exp is None:
                 raise ToolInvalidRequestError(f"experiment '{n}' does not exist")
             out[exp.experiment_id] = exp.name
@@ -332,8 +337,8 @@ class MLflowTools:
         )
 
     def list_runs(self, p: ListRunsInput) -> ToolOutput:
-        exps = self._experiment_ids([p.experiment_name] if p.experiment_name else None)
-        runs = self._search(exps, p.max_results, p.filter_string)
+        exps = self._experiment_ids([p.experiment_id] if p.experiment_id else None)
+        runs = self._search(exps, p.limit, p.filter_string)
         return ToolOutput(
             data={"count": len(runs), "runs": [self._summary(r, exps) for r in runs]},
             evidence_source=[f"MlflowClient.search_runs(experiments={list(exps.values())})"],
@@ -382,8 +387,8 @@ class MLflowTools:
         )
 
     def find_best_run(self, p: FindBestRunInput) -> ToolOutput:
-        mode = p.mode or METRIC_DIRECTION.get(p.metric, "max")
-        exps = self._experiment_ids(p.experiment_names)
+        mode = p.order or METRIC_DIRECTION.get(p.metric, "max")
+        exps = self._experiment_ids([p.experiment_id] if p.experiment_id else None)
         order = [f"metrics.`{p.metric}` {'DESC' if mode == 'max' else 'ASC'}"]
         runs = self._search(exps, p.max_candidates, "attributes.status = 'FINISHED'", order)
         ranked = [self._summary(r, exps) for r in runs if p.metric in r.data.metrics]
@@ -418,7 +423,7 @@ class MLflowTools:
             }
             basis = "explicit run ids"
         else:
-            exps = self._experiment_ids([p.experiment_name] if p.experiment_name else None)
+            exps = self._experiment_ids([p.experiment_id] if p.experiment_id else None)
             runs = self._search(exps, p.last_n, "attributes.status = 'FINISHED'")
             basis = f"{len(runs)} most recent finished runs"
         rows = [self._summary(r, exps) for r in runs]
@@ -453,7 +458,7 @@ class MLflowTools:
     def compare_experiments(self, p: CompareExperimentsInput) -> ToolOutput:
         import statistics
 
-        exps = self._experiment_ids(p.experiment_names)
+        exps = self._experiment_ids(p.experiment_ids)
         summary = []
         for eid, name in exps.items():
             runs = self._search({eid: name}, 500, "attributes.status = 'FINISHED'")
@@ -538,7 +543,7 @@ def register_mlflow_tools(registry: ToolRegistry, tools: MLflowTools | None = No
             "List MLflow experiments with their number of runs.",
         ),
         (
-            "list_runs",
+            "list_training_runs",
             ListRunsInput,
             t.list_runs,
             "List recent MLflow training runs (newest first) with key metrics, model type and provenance tags "
@@ -551,7 +556,7 @@ def register_mlflow_tools(registry: ToolRegistry, tools: MLflowTools | None = No
             "Get one run's full metrics, parameters, tags, artifact list, logged models and registered versions.",
         ),
         (
-            "find_best_run",
+            "find_best_model",
             FindBestRunInput,
             t.find_best_run,
             "Find the best finished run by an evaluation metric (default f1) and assess whether it is a defensible "
@@ -559,7 +564,7 @@ def register_mlflow_tools(registry: ToolRegistry, tools: MLflowTools | None = No
             "never treated as production-ready.",
         ),
         (
-            "compare_runs",
+            "compare_model_runs",
             CompareRunsInput,
             t.compare_runs,
             "Compare specific runs, or the last N finished runs, side by side with best-per-metric and a reasoned "
@@ -572,7 +577,7 @@ def register_mlflow_tools(registry: ToolRegistry, tools: MLflowTools | None = No
             "Compare two or more experiments: run counts, best/mean/std of a metric, best run and model types.",
         ),
         (
-            "get_model_registry_info",
+            "get_model_versions",
             RegistryInfoInput,
             t.get_model_registry_info,
             "Model registry: registered models, versions, aliases (champion = serving, candidate = awaiting review), "

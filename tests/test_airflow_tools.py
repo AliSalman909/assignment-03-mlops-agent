@@ -129,7 +129,7 @@ def test_list_dags_authenticates_and_marks_approved():
 
 def test_trigger_requires_confirmation_and_makes_no_api_call():
     fake = FakeAirflow()
-    res = _registry(fake).execute("trigger_dag", {"dag_id": DAG})
+    res = _registry(fake).execute("trigger_training_pipeline", {"dag_id": DAG})
     assert res.status == ToolStatus.CONFIRMATION_REQUIRED
     assert fake.calls == []  # nothing reached Airflow
 
@@ -137,13 +137,15 @@ def test_trigger_requires_confirmation_and_makes_no_api_call():
 def test_trigger_rejects_unapproved_dag_and_unknown_conf():
     fake = FakeAirflow()
     reg = _registry(fake)
-    assert reg.execute("trigger_dag", {"dag_id": "etl_other"}, confirmed=True).status == ToolStatus.FORBIDDEN
-    bad = reg.execute("trigger_dag", {"conf": {"rm_rf": True}}, confirmed=True)
+    assert (
+        reg.execute("trigger_training_pipeline", {"dag_id": "etl_other"}, confirmed=True).status == ToolStatus.FORBIDDEN
+    )
+    bad = reg.execute("trigger_training_pipeline", {"config": {"rm_rf": True}}, confirmed=True)
     assert bad.status == ToolStatus.INVALID_REQUEST
 
 
 def test_confirmed_trigger_waits_and_reports_success():
-    res = _registry(FakeAirflow()).execute("trigger_dag", {"wait_seconds": 60}, confirmed=True)
+    res = _registry(FakeAirflow()).execute("trigger_training_pipeline", {"wait_seconds": 60}, confirmed=True)
     assert res.ok, res.error
     assert res.data["state"] == "success" and res.data["finished_within_wait"] is True
     assert res.data["task_counts"] == {"success": 6}

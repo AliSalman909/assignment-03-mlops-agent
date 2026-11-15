@@ -156,17 +156,19 @@ The project folder is mounted **read-only** into Airflow, so the pipeline can't 
 
 ## Task 2: MLflow tools (read-only, `MlflowClient`)
 
+`experiment_id` accepts an id (`1`) or a name (`churn-baseline`).
+
 | Tool | Parameters | What it does |
 |---|---|---|
 | `list_experiments` | `include_deleted` | experiments with run counts |
-| `list_runs` | `experiment_name`, `max_results`, `filter_string` | recent runs: metrics, model type, provenance tags |
+| `list_training_runs` | `experiment_id`, `limit`, `filter_string` | recent runs: metrics, model type, provenance tags |
 | `get_run_details` | `run_id` *(required)* | metrics, params, tags, artifacts, logged models, registered versions |
-| `find_best_run` | `metric`, `experiment_names`, `mode` | best run + production-readiness assessment |
-| `compare_runs` | `run_ids` or `last_n`, `experiment_name`, `metric` | side-by-side comparison, best per metric, reasoned recommendation |
-| `compare_experiments` | `experiment_names` *(≥2)*, `metric` | best/mean/std per experiment, model types |
-| `get_model_registry_info` | `model_name` | versions, aliases (`champion` = serving, `candidate` = awaiting review), source-run metrics and provenance |
+| `find_best_model` | `experiment_id`, `metric`, `order` (`max`/`DESC` or `min`/`ASC`) | best run + production-readiness assessment |
+| `compare_model_runs` | `run_ids` (or `last_n` + `experiment_id`), `metric` | side-by-side comparison, best per metric, reasoned recommendation |
+| `compare_experiments` | `experiment_ids` *(≥2)*, `metric` | best/mean/std per experiment, model types |
+| `get_model_versions` | `model_name` | versions, aliases (`champion` = serving, `candidate` = awaiting review), source-run metrics and provenance |
 
-**The highest metric is never treated as "production-ready".** `find_best_run` and `compare_runs`
+**The highest metric is never treated as "production-ready".** `find_best_model` and `compare_model_runs`
 report the margin over the runner-up (and flag it when it's within noise), trade-offs on other
 metrics, the quality-gate result, whether dataset provenance was recorded, and registry status,
 followed by the checks that still need a human.
@@ -190,18 +192,18 @@ validate_dataset → preprocess_data → train_model → evaluate_and_log (MLflo
 - **Quality gate:** `f1 ≥ 0.48`, `roc_auc ≥ 0.70`, and no more than 0.02 F1 regression vs. the champion
   (thresholds calibrated on the seeded runs; overridable per run).
 - **Logging:** each validation check, dataset hash, metrics and gate decision is written to the task log.
-- **Failure injection** via trigger conf: `{"inject_failure": "corrupt_data"}`,
+- **Failure injection** via trigger `config`: `{"inject_failure": "corrupt_data"}`,
   `{"inject_failure": "transient_error"}`, or `{"min_f1": 0.60}` (forces a gate failure).
 
 | Tool | Parameters | Kind | What it does |
 |---|---|---|---|
 | `list_dags` | `limit` | read | DAGs, paused state, tags, whether the agent may trigger them |
 | `get_dag_runs` | `dag_id`, `limit` | read | recent runs with state, timing, conf |
-| `get_dag_run_status` | `dag_id`, `dag_run_id`, `wait_seconds` | read | per-task states and attempts; can wait for completion |
-| `trigger_dag` | `dag_id`, `conf`, `wait_seconds` | **state-changing** | **requires confirmation**, DAG must be on `AIRFLOW_APPROVED_DAGS`, conf keys allow-listed |
-| `get_failed_tasks` | `dag_id`, `dag_run_id` | read | failed tasks and the downstream tasks they blocked |
-| `get_task_logs` | `dag_id`, `dag_run_id`, `task_id`, `try_number` | read | log tail of an attempt (secrets redacted) |
-| `diagnose_dag_run` | `dag_id`, `dag_run_id` | read | root task, error excerpt, failure layer, retries, promotion blocked?, next step |
+| `get_dag_run_status` | `dag_id`, `run_id`, `wait_seconds` | read | per-task states and attempts; can wait for completion |
+| `trigger_training_pipeline` | `dag_id`, `config`, `wait_seconds` | **state-changing** | **requires confirmation**, DAG must be on `AIRFLOW_APPROVED_DAGS`, config keys allow-listed |
+| `get_failed_tasks` | `dag_id`, `run_id` | read | failed tasks and the downstream tasks they blocked |
+| `get_task_logs` | `dag_id`, `run_id`, `task_id`, `try_number` | read | log tail of an attempt (secrets redacted) |
+| `diagnose_dag_run` | `dag_id`, `run_id` | read | root task, error excerpt, failure layer, retries, promotion blocked?, next step |
 
 Regenerate MLflow/Airflow evidence (runs the 3 injected failures; needs the stack up):
 `bash scripts/collect_mlflow_airflow_evidence.sh`

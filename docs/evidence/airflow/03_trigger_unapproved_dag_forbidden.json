@@ -1,8 +1,8 @@
 {
-  "tool": "trigger_dag",
+  "tool": "trigger_training_pipeline",
   "status": "forbidden",
-  "request_id": "146069e7c32c",
-  "duration_ms": 0.05,
+  "request_id": "d24bc373d61a",
+  "duration_ms": 0.04,
   "data": null,
   "error": "DAG 'some_other_dag' is not on the approved list ['churn_training_pipeline']",
   "evidence_source": []

@@ -1,8 +1,8 @@
 {
   "tool": "get_run_details",
   "status": "ok",
-  "request_id": "20e7578c0de8",
-  "duration_ms": 4600.11,
+  "request_id": "c34205fdb176",
+  "duration_ms": 1950.83,
   "data": {
     "run_id": "cedfcc5e39ef43f094152b920000b52d",
     "run_name": "logistic_regression-data-v2.0",

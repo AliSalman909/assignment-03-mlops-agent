@@ -129,7 +129,7 @@ def registry():
 
 
 def test_find_best_run_does_not_equate_top_metric_with_production_ready(registry):
-    res = registry.execute("find_best_run", {"metric": "f1"})
+    res = registry.execute("find_best_model", {"metric": "f1"})
     assert res.ok, res.error
     assert res.data["best_run"]["run_id"] == RID[3]  # highest f1 ...
     a = res.data["assessment"]
@@ -139,7 +139,7 @@ def test_find_best_run_does_not_equate_top_metric_with_production_ready(registry
 
 
 def test_find_best_run_flags_indecisive_margin(registry):
-    res = registry.execute("find_best_run", {"metric": "f1", "experiment_names": ["churn-baseline"]})
+    res = registry.execute("find_best_model", {"metric": "f1", "experiment_id": "churn-baseline"})
     assert res.ok
     assert res.data["best_run"]["run_id"] == RID[1]
     obs = " ".join(res.data["assessment"]["observations"])
@@ -148,7 +148,7 @@ def test_find_best_run_flags_indecisive_margin(registry):
 
 
 def test_compare_last_n_runs_ranks_and_recommends(registry):
-    res = registry.execute("compare_runs", {"last_n": 3, "experiment_name": "churn-baseline", "metric": "f1"})
+    res = registry.execute("compare_model_runs", {"last_n": 3, "experiment_id": "churn-baseline", "metric": "f1"})
     assert res.ok, res.error
     assert [r["run_id"] for r in res.data["ranking"]] == [RID[1], RID[2], RID[0]]
     assert res.data["best_per_metric"]["f1"]["run_id"] == RID[1]
@@ -156,7 +156,7 @@ def test_compare_last_n_runs_ranks_and_recommends(registry):
 
 
 def test_compare_experiments_aggregates(registry):
-    res = registry.execute("compare_experiments", {"experiment_names": ["churn-baseline", "churn-training-pipeline"]})
+    res = registry.execute("compare_experiments", {"experiment_ids": ["churn-baseline", "churn-training-pipeline"]})
     assert res.ok, res.error
     by = {e["experiment"]: e for e in res.data["experiments"]}
     assert by["churn-baseline"]["finished_runs"] == 3
@@ -165,7 +165,7 @@ def test_compare_experiments_aggregates(registry):
 
 
 def test_registry_info_reports_aliases_and_provenance(registry):
-    res = registry.execute("get_model_registry_info", {"model_name": "churn-classifier"})
+    res = registry.execute("get_model_versions", {"model_name": "churn-classifier"})
     assert res.ok, res.error
     model = res.data["registered_models"][0]
     assert model["aliases"] == {"champion": "1", "candidate": "2"}
@@ -181,9 +181,9 @@ def test_run_details_and_unknown_run(registry):
 
 
 def test_unknown_experiment_and_bad_input(registry):
-    assert registry.execute("list_runs", {"experiment_name": "nope"}).status == ToolStatus.INVALID_REQUEST
+    assert registry.execute("list_training_runs", {"experiment_id": "nope"}).status == ToolStatus.INVALID_REQUEST
     assert registry.execute("get_run_details", {"run_id": "../../etc"}).status == ToolStatus.INVALID_REQUEST
-    assert registry.execute("find_best_run", {"metric": "f1; drop"}).status == ToolStatus.INVALID_REQUEST
+    assert registry.execute("find_best_model", {"metric": "f1; drop"}).status == ToolStatus.INVALID_REQUEST
 
 
 def test_mlflow_server_down_is_unavailable_not_invented():
@@ -196,6 +196,6 @@ def test_mlflow_server_down_is_unavailable_not_invented():
 
     reg = ToolRegistry()
     register_mlflow_tools(reg, MLflowTools(settings=Settings(), client=Down()))
-    res = reg.execute("find_best_run", {})
+    res = reg.execute("find_best_model", {})
     assert res.status == ToolStatus.UNAVAILABLE
     assert res.data is None

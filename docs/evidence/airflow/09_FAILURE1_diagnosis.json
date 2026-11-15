@@ -1,11 +1,11 @@
 {
   "tool": "diagnose_dag_run",
   "status": "ok",
-  "request_id": "233a34f1770f",
-  "duration_ms": 329.69,
+  "request_id": "9632acef8eed",
+  "duration_ms": 264.02,
   "data": {
     "dag_id": "churn_training_pipeline",
-    "dag_run_id": "manual__2026-11-15T11:09:02.610408+00:00",
+    "run_id": "manual__2026-11-15T11:17:06.307358+00:00",
     "run_state": "failed",
     "tasks": [
       {
@@ -47,8 +47,8 @@
         "explanation": "the input dataset failed validation checks",
         "recommended_action": "inspect the dataset version with the DVC tools; fix or roll back the data, then re-run",
         "evidence": [
-          "2026-11-15T11:09:05.512676Z WARNING INJECTED FAILURE: simulating an upstream export that lost the label column",
-          "2026-11-15T11:09:05.529203Z ERROR Task failed with exception",
+          "2026-11-15T11:17:08.673443Z WARNING INJECTED FAILURE: simulating an upstream export that lost the label column",
+          "2026-11-15T11:17:08.681392Z ERROR Task failed with exception",
           "    AirflowFailException: DATA_VALIDATION_FAILED: required_columns: missing=['churned']; duplicate_rate: duplicate rows=11.765% (max 5%)"
         ]
       }
@@ -65,7 +65,7 @@
   },
   "error": null,
   "evidence_source": [
-    "GET dagRuns/manual__2026-11-15T11:09:02.610408+00:00",
+    "GET dagRuns/manual__2026-11-15T11:17:06.307358+00:00",
     "GET taskInstances",
     "GET logs validate_dataset#1"
   ]

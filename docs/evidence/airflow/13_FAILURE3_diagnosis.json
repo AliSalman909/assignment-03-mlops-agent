@@ -1,11 +1,11 @@
 {
   "tool": "diagnose_dag_run",
   "status": "ok",
-  "request_id": "cf8017fde970",
-  "duration_ms": 324.81,
+  "request_id": "c39611de4ae2",
+  "duration_ms": 258.31,
   "data": {
     "dag_id": "churn_training_pipeline",
-    "dag_run_id": "manual__2026-11-15T11:09:45.641467+00:00",
+    "run_id": "manual__2026-11-15T11:17:41.435627+00:00",
     "run_state": "success",
     "tasks": [
       {
@@ -47,8 +47,8 @@
         "explanation": "first attempt failed, a retry succeeded - retry policy absorbed a transient fault",
         "recommended_action": "no action unless this recurs",
         "evidence": [
-          "2026-11-15T11:09:50.041286Z WARNING INJECTED FAILURE: simulating a transient storage timeout on the first attempt",
-          "2026-11-15T11:09:50.041596Z ERROR Task failed with exception",
+          "2026-11-15T11:17:45.737417Z WARNING INJECTED FAILURE: simulating a transient storage timeout on the first attempt",
+          "2026-11-15T11:17:45.737636Z ERROR Task failed with exception",
           "    TimeoutError: TRANSIENT: object storage read timed out (attempt 1)"
         ]
       }
@@ -58,7 +58,7 @@
   },
   "error": null,
   "evidence_source": [
-    "GET dagRuns/manual__2026-11-15T11:09:45.641467+00:00",
+    "GET dagRuns/manual__2026-11-15T11:17:41.435627+00:00",
     "GET taskInstances",
     "GET logs preprocess_data#1"
   ]
